@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  /* Direction « atelier éditorial » : papier chaud, encre, terracotta */
+  --color-paper: #f6f2ea;
+  --color-ink: #1c1917;
+  --color-accent: #c8552c;
+  --color-danger: #b3261e;
+  --color-warn: #d97706;
+  --color-ok: #3d7c47;
+  --color-instagram: #b13589;
+  --color-facebook: #1877f2;
+  --color-linkedin: #0a66c2;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-worksans), system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Champs de formulaire denses et tactiles */
+.field {
+  width: 100%;
+  border: 2px solid color-mix(in srgb, var(--color-ink) 80%, transparent);
+  background: white;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  outline: none;
+}
+.field:focus {
+  border-color: var(--color-accent);
+}
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--color-ink) 60%, transparent);
+  margin-bottom: 0.25rem;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px solid var(--color-ink);
+  background: white;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn:hover {
+  background: var(--color-ink);
+  color: white;
+}
+.btn-accent {
+  background: var(--color-accent);
+  color: white;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 40%, transparent);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.card {
+  border: 2px solid var(--color-ink);
+  background: white;
+}
