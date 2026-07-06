@@ -13,7 +13,7 @@ export const accounts = sqliteTable("accounts", {
   notes: text("notes").default(""),
   // Délai approximatif (en jours) de validation par le client
   validationDelayDays: integer("validation_delay_days").notNull().default(3),
-  color: text("color").notNull().default("#C8552C"),
+  color: text("color").notNull().default("#DE2F2C"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

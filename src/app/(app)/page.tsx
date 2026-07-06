@@ -61,7 +61,7 @@ export default async function DashboardPage() {
                     style={{
                       borderLeftWidth: 8,
                       borderLeftColor:
-                        status === "depassee" ? "#B3261E" : status === "proche" ? "#D97706" : (account?.color ?? "#1C1917"),
+                        status === "depassee" ? "#7A1512" : status === "proche" ? "#D97706" : (account?.color ?? "#1C1917"),
                     }}
                   >
                     <span

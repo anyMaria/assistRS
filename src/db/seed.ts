@@ -214,7 +214,7 @@ const defaultColorRules = [
   { entity: "idees", field: "status", operator: "egal", value: "idee", color: "#8A857B", label: "Idée" },
   { entity: "idees", field: "status", operator: "egal", value: "en_production", color: "#D9A404", label: "En production" },
   { entity: "idees", field: "status", operator: "egal", value: "publiee", color: "#3D7C47", label: "Publiée" },
-  { entity: "publications", field: "deadline", operator: "inferieur", value: "0", color: "#B3261E", label: "Deadline dépassée" },
+  { entity: "publications", field: "deadline", operator: "inferieur", value: "0", color: "#7A1512", label: "Deadline dépassée" },
   { entity: "publications", field: "deadline", operator: "inferieur", value: "2", color: "#D97706", label: "Deadline proche (moins de 2 jours)" },
   { entity: "publications", field: "status", operator: "egal", value: "publiee", color: "#3D7C47", label: "Publiée" },
 ];

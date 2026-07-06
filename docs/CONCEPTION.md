@@ -335,11 +335,12 @@ dégradée sans casser la page, et ligne `api_usage` pour le suivi de coût.
 
 ## 12. Design
 
-Direction « atelier éditorial » existante (papier #F6F2EA, encre #1C1917, terracotta
-#C8552C, Fraunces + Work Sans, bordures franches). Les nouveaux écrans suivent les
-skills `frontend-design` / `web-design-guidelines` / `ui-ux-pro-max`. Mobile : saisie de
-stats, checklists et bilan optimisés en priorité. PWA iPhone en phase finale (manifest,
-icônes, web push iOS ≥ 16.4).
+Direction « atelier éditorial » (papier #F6F2EA, encre #1C1917, **rouge signature
+#DE2F2C** choisi par Ana, Fraunces + Work Sans, bordures franches, ombres dures). La
+charte UX/UI complète — palette, hiérarchie, états interactifs, feedbacks, accessibilité,
+mobile — est dans `GUIDELINE.md` §2.3 et est **contractuelle** : l'esthétique et
+l'interactivité font partie du produit. Mobile : saisie de stats, checklists et bilan
+optimisés en priorité. PWA iPhone en phase finale (manifest, icônes, web push iOS ≥ 16.4).
 
 ## 13. Phasage d'exécution (pour le guideline)
 

@@ -100,16 +100,71 @@ Base : `npm run db:push` (applique le schéma), `npm run db:seed`, `npm run dev`
 - Dates : `integer("...", { mode: "timestamp" })` — lit/écrit des objets `Date`.
 - Requêtes : `db.select().from(table).where(eq(...))` ; imports depuis `"drizzle-orm"`.
 
-### 2.3 Style et design
-- Tailwind v4 : le thème est dans `src/app/globals.css` (`@theme`). Couleurs :
-  `bg-paper`, `text-ink`, `bg-accent`, `text-danger`, `text-warn`, `text-ok`,
-  `bg-instagram/facebook/linkedin`.
-- Classes utilitaires maison : `.field`, `.field-label`, `.btn`, `.btn-accent`, `.tag`,
-  `.card`. **Réutilise-les**, n'invente pas de nouveaux styles de boutons/champs.
-- Titres : `font-display` (Fraunces, souvent en `italic`). Esthétique : bordures
-  franches 2px encre, pas d'ombres floues, pas de dégradés, pas de coins très arrondis.
-- Mobile d'abord pour : saisie de relevés, checklists, bilan. La nav mobile est une
-  barre en bas d'écran (max 5 entrées — si tu ajoutes une page, décide ce qui reste).
+### 2.3 Charte UX/UI (obligatoire — l'esthétique et l'interactivité font partie du produit)
+
+Ana est graphiste : une interface fonctionnelle mais négligée est un échec. Chaque écran
+doit passer les règles ci-dessous. En cas de doute esthétique, consulte les skills
+`frontend-design` et `web-design-guidelines` avant d'inventer.
+
+**a) Palette — le rouge signature `#DE2F2C`**
+- Le thème est dans `src/app/globals.css` (`@theme`) : `bg-paper` (#F6F2EA), `text-ink`
+  (#1C1917), `bg-accent` (**#DE2F2C**, survol `--color-accent-dark` #B22421),
+  `text-danger` (#7A1512), `text-warn` (#D97706), `text-ok` (#3D7C47), plus
+  `instagram/facebook/linkedin` pour les tags de plateforme.
+- Le rouge accent est réservé aux **actions** : bouton principal (un seul par écran),
+  liens d'action, élément actif, focus. Jamais de paragraphe entier en rouge ; sur fond
+  papier, le rouge ne porte que des libellés courts et gras (contraste limite).
+- `danger` ≠ `accent` : une alerte affiche TOUJOURS icône (⚠) + mot explicite, jamais la
+  couleur seule. La couleur ne porte jamais l'information à elle seule (daltonisme).
+
+**b) Typographie et hiérarchie**
+- Pattern d'en-tête de page (déjà en place, à reproduire à l'identique) : `<h1>` en
+  `font-display text-4xl italic` + sous-titre `text-ink/60` d'une phrase. Un seul h1
+  par page ; sections en `font-display text-2xl`.
+- Corps en Work Sans, jamais < 14 px (16 px pour les champs). Étiquettes de champs :
+  `.field-label` (uppercase, petites capitales espacées).
+
+**c) Composants — réutilise, n'invente pas**
+- `.field`, `.field-label`, `.btn`, `.btn-accent`, `.tag`, `.card` couvrent 90 % des
+  besoins. Style « atelier » : bordures franches 2 px encre, angles droits, pas
+  d'ombres floues ni de dégradés. Les ombres sont **dures** (décalage 2-3 px, encre),
+  utilisées au survol des cartes interactives.
+- Pastilles de couleur de marque : carrées (pas rondes), bord encre 1 px.
+
+**d) Interactivité — chaque action doit répondre**
+- Tout élément cliquable : `cursor-pointer`, état de survol visible (boutons : fond
+  encre/texte papier ; liens : soulignement), transition 150 ms (jamais > 300 ms).
+  Le focus clavier est déjà géré globalement (`:focus-visible` outline accent) — ne le
+  supprime jamais.
+- Formulaires : le bouton de soumission passe en état de chargement
+  (`useFormStatus` → libellé « Enregistrement… » + `disabled`). Après succès, feedback
+  « ✓ Enregistré » qui s'efface après ~3 s — écris UN composant client partagé
+  (`SubmitButton`) en G1 et réutilise-le partout.
+- Suppressions : jamais en un clic — demander confirmation (bouton « Supprimer ? »
+  qui exige un second clic, ou dialogue). Libellé explicite sur ce qui sera perdu.
+- Kanban : pendant le drag, la carte prend une ombre dure + légère rotation (2°), la
+  colonne cible se surligne (`bg-ink/5`) ; le drop est possible au clavier via des
+  boutons ← → sur chaque carte (accessibilité).
+- Checklist de production : cocher anime la case (scale bref) et fait apparaître la date.
+- Barre de budget (S'inspirer) : remplissage animé, couleur ok → warn → danger selon le
+  niveau.
+- Chargements : `loading.tsx` avec skeletons (blocs papier pulsants) pour les grilles
+  lentes (inspiration, analyse) ; jamais d'écran blanc.
+- Erreurs : encart dans la page (`.card` avec bord danger + icône), jamais `alert()`.
+- États vides : chaque liste vide affiche une phrase chaleureuse en français + LE bouton
+  d'action qui permet de démarrer (jamais une zone vide muette).
+
+**e) Mobile (usage quotidien réel : saisie depuis l'iPhone)**
+- Cibles tactiles ≥ 44 px, formulaires en 1 colonne, champs numériques avec
+  `inputMode="numeric"`, la nav est la barre en bas d'écran (max 5 entrées — si tu
+  ajoutes une page, décide ce qui sort).
+- Priorité mobile absolue pour : saisie de relevés, checklists, /bilan.
+
+**f) Accessibilité (vérifiée avec le skill `web-design-guidelines` à chaque bloc)**
+- Chaque input a un `<label>` ; chaque image un `alt` ; les dialogues (⌘K, confirmations)
+  ont `role="dialog"`, se ferment par Échap et rendent le focus.
+- `prefers-reduced-motion` est déjà respecté globalement — n'ajoute pas d'animation qui
+  le contourne.
 - Apostrophes françaises dans le JSX : `&apos;` (sinon ESLint `react/no-unescaped-entities`).
 
 ### 2.4 Gestion d'erreurs — patron unique
@@ -208,6 +263,8 @@ mot de passe `trinkets`) → (7) re-test rapide des pages existantes → (8) com
   suppression) + ajout manuel.
 
 **Critères d'acceptation G1**
+- [ ] Le composant partagé `SubmitButton` (état de chargement + « ✓ Enregistré ») existe
+      et remplace les boutons de soumission des formulaires existants.
 - [ ] /idees et /planning : 3 types de vues fonctionnent, changement de vue conservé
       dans l'URL, kanban drag & drop change le statut en base.
 - [ ] Couleurs conditionnelles visibles et modifiables depuis /parametres.

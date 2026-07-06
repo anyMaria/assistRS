@@ -2,7 +2,7 @@ import type { Account } from "@/db/schema";
 import { PLATFORMS } from "@/lib/constants";
 
 const ACCOUNT_COLORS = [
-  "#C8552C", "#B13589", "#1877F2", "#0A66C2", "#3D7C47",
+  "#DE2F2C", "#B13589", "#1877F2", "#0A66C2", "#3D7C47",
   "#D97706", "#6D28D9", "#0F766E", "#1C1917",
 ];
 
@@ -76,7 +76,7 @@ export function AccountForm({
                 type="radio"
                 name="color"
                 value={c}
-                defaultChecked={(account?.color ?? "#C8552C") === c}
+                defaultChecked={(account?.color ?? "#DE2F2C") === c}
                 className="peer sr-only"
               />
               <span
