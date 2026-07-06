@@ -24,7 +24,7 @@ client, et prouver la valeur avec des chiffres.
 3. **Coûts maîtrisés** — budget scraping ~5 €/mois : cache agressif, plafonds de
    résultats, compteur de dépense visible. IA : textes courts, prompts compacts.
 4. **Vitesse de saisie** — usage mobile fréquent ; gros champs, peu de clics.
-5. **Échec propre** — si une API (Claude, Apify, Resend) ne répond pas, le reste de
+5. **Échec propre** — si une API (Gemini, Apify, Resend) ne répond pas, le reste de
    l'app fonctionne normalement.
 
 ## 2. Architecture fonctionnelle — 6 pôles
@@ -156,8 +156,8 @@ marque + thème. Chaque idée retenue garde son statut (idée / en production / 
    directement.
 4. Deux actions :
    - **↵ Appliquer** : la légende (telle qu'éditée) est enregistrée sur la publication.
-   - **🧠 Mémoriser mes corrections** : l'app envoie à Claude le texte généré + le texte
-     corrigé ; Claude en déduit 1-3 règles courtes (« Ana remplace "N'hésitez pas à" par
+   - **🧠 Mémoriser mes corrections** : l'app envoie à l'IA le texte généré + le texte
+     corrigé ; l'IA en déduit 1-3 règles courtes (« Ana remplace "N'hésitez pas à" par
      un impératif direct ») ; les règles s'ajoutent à la mémoire de la marque après
      aperçu/confirmation.
 5. Bouton optionnel **« Améliorer mon texte »** : quand Ana a écrit elle-même une
@@ -276,7 +276,7 @@ Existant (relevés, KPI, comparaisons, import CSV avec mapping, croisement horai
    pour préparer le mois ». Wizard marque par marque :
    - Questions : quoi de neuf ? promos/lancements ? événements ? contraintes ?
      (pré-remplies avec la saisonnalité de la marque)
-   - Claude propose un **calendrier éditorial du mois** : X publications réparties selon
+   - L'IA propose un **calendrier éditorial du mois** : X publications réparties selon
      les piliers et la grille horaire, chacune avec thème + format + accroche.
    - Ana valide/édite/supprime ligne par ligne → les retenues deviennent des
      publications planifiées (et leurs deadlines visuel se calculent toutes seules).
@@ -317,14 +317,14 @@ Nouvelles tables :
 - `time_entries` : accountId, publicationId?, minutes, note, date
 - `reports` : accountId, month, blobUrl, createdAt
 - `monthly_rituals` : month, accountId, answers JSON, proposal JSON, status
-- `api_usage` : service (apify|anthropic|resend), action, costCents, createdAt
+- `api_usage` : service (apify|gemini|resend), action, costCents, createdAt
 - `ical_tokens` : token, revokedAt
 
 ## 11. Intégrations & secrets (tous côté serveur)
 
 | Service | Usage | Variable |
 |---|---|---|
-| Anthropic | génération/analyse (modèle configurable) | `ANTHROPIC_API_KEY`, `CLAUDE_MODEL` |
+| Google Gemini | génération/analyse — **palier gratuit** (~1 500 req/jour), clé créée sur aistudio.google.com | `GEMINI_API_KEY`, `GEMINI_MODEL` |
 | Apify | scrapers S'inspirer (5 actors §5.2) | `APIFY_TOKEN` |
 | Resend | bilans + rituels + envoi de rapports — destinataire `anymaridim@gmail.com`, expéditeur `onboarding@resend.dev` tant qu'aucun domaine n'est vérifié | `RESEND_API_KEY` |
 | Vercel Blob | logos, assets, moodboards, rapports PDF (`access: "private"`) | `BLOB_READ_WRITE_TOKEN` |

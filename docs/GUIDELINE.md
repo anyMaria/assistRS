@@ -16,10 +16,10 @@
    statistiques, programmation) fonctionnent : re-teste-les après chaque bloc.
 3. **Interface 100 % en français.** Textes, labels, messages d'erreur, e-mails. Le code
    (variables, fonctions) reste en anglais.
-4. **Aucun secret côté client.** Toute clé API (`ANTHROPIC_API_KEY`, `APIFY_TOKEN`,
+4. **Aucun secret côté client.** Toute clé API (`GEMINI_API_KEY`, `APIFY_TOKEN`,
    `RESEND_API_KEY`, `BLOB_READ_WRITE_TOKEN`) n'est lue que dans du code serveur
    (server actions, route handlers). Jamais de `NEXT_PUBLIC_` pour un secret.
-5. **Échec propre obligatoire.** Chaque appel externe (Claude, Apify, Resend, Blob) est
+5. **Échec propre obligatoire.** Chaque appel externe (Gemini, Apify, Resend, Blob) est
    dans un `try/catch` ; en cas d'échec : message français clair à l'écran, le reste de
    la page fonctionne, et l'erreur est loguée avec `console.error`.
 6. **Pas de nouvelle dépendance** hors liste autorisée (§2.6) sans justification écrite
@@ -182,15 +182,15 @@ export async function actionAvecApiExterne(...): Promise<{ ok: true; data: X } |
 Le composant affiche `error` dans un encart `border-danger text-danger`. La page reste
 utilisable.
 
-### 2.5 Suivi des coûts — obligatoire pour Apify, Anthropic et Resend
+### 2.5 Suivi des coûts — obligatoire pour Apify, Gemini et Resend
 Chaque appel externe insère une ligne dans `api_usage` (service, action, costCents).
 Helper à créer en G3 : `src/lib/api-usage.ts` avec `logUsage(service, action, costCents)`
 et `monthlySpendCents(service)`.
 
 ### 2.6 Dépendances autorisées
 Déjà installées : `drizzle-orm`, `@libsql/client`, `zod`, `papaparse`,
-`@anthropic-ai/sdk`, `@dnd-kit/core|sortable|utilities`.
-À installer au moment voulu : `@vercel/blob` (G1), `resend` (G6),
+`@dnd-kit/core|sortable|utilities`.
+À installer au moment voulu : `@vercel/blob` (G1), `@google/genai` (G2), `resend` (G6),
 `@react-pdf/renderer` (G5). **Rien d'autre.** (Pas de lib iCal : on génère le texte
 .ics à la main, voir §9.)
 
@@ -276,8 +276,8 @@ mot de passe `trinkets`) → (7) re-test rapide des pages existantes → (8) com
 
 ### G2 — Créer : IA de rédaction, mémoire, recall, déclinaisons
 
-- `src/lib/claude.ts` : client Anthropic unique + helper `generate()` (voir §5 pour les
-  prompts exacts). Modèle : `process.env.CLAUDE_MODEL ?? "claude-opus-4-8"`.
+- `src/lib/gemini.ts` : client Gemini unique (voir §5 pour le client exact et les
+  prompts exacts).
 - `src/lib/brand-context.ts` : `buildBrandContext(accountId)` → texte compact (< 600
   mots) assemblant contexte, ligne éditoriale et règles de mémoire actives de la marque.
   Écris-le UNE fois, utilisé par toutes les features IA.
@@ -287,7 +287,7 @@ mot de passe `trinkets`) → (7) re-test rapide des pages existantes → (8) com
   légende » → route `POST /api/ia/legende` → textarea éditable pré-remplie +
   2 boutons : **Appliquer** (enregistre `editedOutput` dans `generations` + copie la
   légende dans le brief de la publication) et **Mémoriser mes corrections** (§5.4 :
-  envoie généré + corrigé à Claude, reçoit 1-3 règles, les affiche cochables, insère les
+  envoie généré + corrigé à l'IA, reçoit 1-3 règles, les affiche cochables, insère les
   cochées dans `brand_memory_rules`).
 - Bouton « Améliorer mon texte » (explicite, jamais automatique) : même éditeur, prompt
   §5.5.
@@ -302,7 +302,7 @@ mot de passe `trinkets`) → (7) re-test rapide des pages existantes → (8) com
 - Table `generations` (schéma §10) alimentée à chaque appel IA.
 
 **Critères d'acceptation G2**
-- [ ] Sans `ANTHROPIC_API_KEY` : les boutons IA affichent l'erreur propre, tout le
+- [ ] Sans `GEMINI_API_KEY` : les boutons IA affichent l'erreur propre, tout le
       reste fonctionne.
 - [ ] Une légende générée, éditée puis « Appliquer » se retrouve sur la publication.
 - [ ] « Mémoriser » crée des règles visibles dans l'onglet Mémoire, et une nouvelle
@@ -405,7 +405,7 @@ mot de passe `trinkets`) → (7) re-test rapide des pages existantes → (8) com
   la barre dépasse 5 entrées).
 - Rituel mensuel (`/rituel`) : bandeau sur l'accueil du 1er au 7. Wizard par marque :
   questions pré-remplies (saisonnalité §3.1) → réponses stockées dans
-  `monthly_rituals.answers` → appel Claude (§5.3) → propositions affichées ligne par
+  `monthly_rituals.answers` → appel Gemini (§5.3) → propositions affichées ligne par
   ligne (thème, format, plateforme, date/créneau suggéré, accroche) avec
   garder/éditer/retirer → « Valider » = création des publications planifiées.
 
@@ -436,14 +436,31 @@ mot de passe `trinkets`) → (7) re-test rapide des pages existantes → (8) com
 
 ## 5. Spécifications IA (prompts exacts)
 
-Client unique dans `src/lib/claude.ts` :
+> **Décision d'Ana (06/07/2026) : l'IA de l'app est Google Gemini, palier gratuit**
+> (~1 500 requêtes/jour avec Flash — jamais atteint à son usage, coût 0 €).
+> Clé créée sur aistudio.google.com, stockée dans `GEMINI_API_KEY`.
+
+Client unique dans `src/lib/gemini.ts` — SDK officiel `@google/genai` (à installer en
+G2 ; **pas** l'ancien paquet déprécié `@google/generative-ai`) :
 ```ts
-import Anthropic from "@anthropic-ai/sdk";
-export const claude = new Anthropic(); // lit ANTHROPIC_API_KEY
-export const MODEL = process.env.CLAUDE_MODEL ?? "claude-opus-4-8";
+import { GoogleGenAI } from "@google/genai";
+export const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+export const MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+// Vérifie sur ai.google.dev le nom du modèle Flash stable au moment de coder,
+// et laisse-le configurable via GEMINI_MODEL.
 ```
-Tous les appels : `max_tokens: 2048` (idées/légendes) ou `4096` (calendrier/analyse),
-`thinking: { type: "adaptive" }`. Pas de `temperature` (paramètre non supporté).
+
+Règles pour tous les appels :
+- `systemInstruction` = préambule §5.1 + contexte de marque.
+- Sorties structurées (idées, calendrier, règles) : `responseMimeType:
+  "application/json"` + `responseSchema` (voir §5.2). Sorties texte (légende,
+  amélioration, analyse) : réponse libre, lue via `response.text`.
+- **Gestion du palier gratuit** : une erreur 429 = quota par minute atteint → message
+  « L'IA gratuite est très sollicitée, réessaie dans une minute. » (pas de retry
+  automatique en boucle). Logguer chaque appel dans `api_usage` (service `gemini`,
+  costCents 0) pour suivre le volume.
+- Chaque appel dans un try/catch (patron §2.4) — sans `GEMINI_API_KEY`, les boutons IA
+  affichent l'erreur propre et le reste de l'app fonctionne.
 
 ### 5.1 Préambule système commun (à préfixer à tous les prompts)
 ```
@@ -465,22 +482,41 @@ Règles d'écriture strictes (anti-slop) :
 User message : contexte de marque (via `buildBrandContext`) + `Thème : <saisie>` +
 `Plateforme visée : <choix>`. Utiliser une sortie structurée :
 ```ts
-const response = await claude.messages.create({
-  model: MODEL, max_tokens: 2048, thinking: { type: "adaptive" },
-  output_config: { format: { type: "json_schema", schema: {
-    type: "object", additionalProperties: false, required: ["idees"],
-    properties: { idees: { type: "array", items: {
-      type: "object", additionalProperties: false,
-      required: ["titre", "format", "accroche", "structure", "cta", "pilier"],
+import { Type } from "@google/genai";
+
+const response = await ai.models.generateContent({
+  model: MODEL,
+  contents: userMessage,
+  config: {
+    systemInstruction: PREAMBULE + "\n\n" + brandContext,
+    responseMimeType: "application/json",
+    responseSchema: {
+      type: Type.OBJECT,
+      required: ["idees"],
       properties: {
-        titre: { type: "string" }, format: { enum: ["carrousel", "reel", "story", "post"] },
-        accroche: { type: "string" }, structure: { type: "array", items: { type: "string" } },
-        cta: { type: "string" }, pilier: { type: "string" },
-      } } } } } } },
-  system: PREAMBULE, messages: [{ role: "user", content: userMessage }],
+        idees: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            required: ["titre", "format", "accroche", "structure", "cta", "pilier"],
+            properties: {
+              titre: { type: Type.STRING },
+              format: { type: Type.STRING, enum: ["carrousel", "reel", "story", "post"] },
+              accroche: { type: Type.STRING },
+              structure: { type: Type.ARRAY, items: { type: Type.STRING } },
+              cta: { type: Type.STRING },
+              pilier: { type: Type.STRING },
+            },
+          },
+        },
+      },
+    },
+  },
 });
-// Vérifier response.stop_reason avant de lire le contenu ; parser le texte JSON.
+const data = JSON.parse(response.text ?? "{}"); // toujours dans un try/catch
 ```
+Le même patron (schéma adapté) sert pour le calendrier mensuel (§5.3) et l'extraction
+de règles (§5.4).
 
 ### 5.3 Calendrier éditorial mensuel
 Entrée : contexte de marque + réponses du wizard + piliers avec leurs parts + grille de
@@ -642,8 +678,12 @@ Enregistrer les polices Fraunces/Work Sans via `Font.register` (fichiers .ttf da
 8. Vercel Hobby : 1 seul cron quotidien fiable → tout passe par `/api/cron/quotidien`.
 9. `git push` vers main est bloqué dans cet environnement : committer localement,
    demander à Ana pour pousser.
-10. Ne jamais mettre `output_config` ET demander du texte libre dans le même appel —
-    choisir : JSON structuré (idées, calendrier, règles) ou texte (légende, analyse).
+10. Ne jamais mettre `responseSchema` ET demander du texte libre dans le même appel
+    Gemini — choisir : JSON structuré (idées, calendrier, règles) ou texte libre
+    (légende, amélioration, analyse). Et toujours parser `response.text` dans un
+    try/catch.
+11. Le SDK Gemini est `@google/genai` — PAS `@google/generative-ai` (déprécié), que tes
+    connaissances proposeront peut-être par défaut.
 
 ## 12. Définition de « terminé » (globale)
 
