@@ -541,11 +541,31 @@ export async function runActor(source: keyof typeof ACTORS, input: object, maxIt
 
 Entrées indicatives par actor — **vérifie l'onglet « Input » de chaque actor sur
 apify.com avant d'implémenter, les schémas changent** :
-- Pinterest : `{ searchQueries: [theme], maxItems: 30 }`
+- Pinterest (**vérifié en réel le 06/07/2026**) :
+  `{ query: "<mots-clés>", limit: 20, filter: "all" }` — attention : `limit` **minimum
+  20** (le plafond de l'app devient donc : exactement 20-30). Sortie constatée :
+  `{ id, name, coverURL, thumbnailURL, slashURL, pinCount, type, owner: { fullName,
+  username, followers, avatarURL } }`. Les items peuvent être des **tableaux Pinterest**
+  (`type: "board"`) et pas seulement des épingles — affiche les deux (un board est une
+  mine d'inspiration), signaux = `pinCount` + `owner.followers`.
 - Instagram : `{ search: theme, searchType: "hashtag", resultsType: "posts", resultsLimit: 30 }`
 - LinkedIn : `{ searchQueries: [theme], maxItems: 30 }`
 - Facebook : `{ searchQuery: theme, maxPosts: 30 }`
 - Meta Ads : `{ searchTerms: theme, country: "FR", maxItems: 20 }`
+
+**Deux enseignements des tests réels, à respecter absolument :**
+1. **Les requêtes longues/accentuées peuvent rendre 0 résultat** (« identité visuelle
+   artisan » → 0 ; « branding artisan » → 20). Avant l'appel : retirer les accents,
+   limiter à 2-3 mots-clés. Si 0 résultat : afficher « Aucun résultat — essaie des
+   mots-clés plus simples ou en anglais » (et ne PAS logguer de coût).
+2. **Un run dure ~100 secondes.** L'endpoint `run-sync` dépasserait le timeout des
+   fonctions Vercel (60 s sur le plan Hobby). Implémente donc en **asynchrone** :
+   `POST /v2/acts/<actor>/runs` (démarre, rend `runId` + `defaultDatasetId`) → la page
+   affiche l'état « Recherche en cours… » (skeleton) → un polling client toutes les 5 s
+   sur une route `GET /api/inspiration/statut?runId=...` qui interroge
+   `GET /v2/actor-runs/<runId>` → quand `status === "SUCCEEDED"`, récupérer
+   `GET /v2/datasets/<datasetId>/items` et enregistrer. Remplace le helper `runActor`
+   synchrone ci-dessus par cette paire start/poll.
 
 Normalise chaque item vers `inspiration_items` (source, imageUrl, author, postedAt,
 metrics JSON, originalUrl) — champ par champ selon la sortie réelle de l'actor (lance un
