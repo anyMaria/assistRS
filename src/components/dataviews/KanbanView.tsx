@@ -10,6 +10,7 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
+import { CardModal, DetailFields } from "./CardModal";
 import type { DataCard, KanbanColumn } from "./types";
 
 function Card({
@@ -40,24 +41,44 @@ function Card({
         opacity: isDragging ? 0.6 : 1,
       }}
     >
-      <p className="font-semibold">{card.title}</p>
-      {card.subtitle && <p className="mt-0.5 text-xs text-ink/50">{card.subtitle}</p>}
-      <div className="mt-2 flex flex-wrap gap-1">
-        {card.badges.map((b, i) => (
-          <span
-            key={i}
-            className="tag"
-            style={b.color ? { backgroundColor: b.color, color: "white", borderColor: "transparent" } : undefined}
-          >
-            {b.label}
-          </span>
-        ))}
-      </div>
-      {card.extra && (
-        <p className="mt-1 text-xs" style={{ color: card.extraColor ?? "#78716c" }}>
-          {card.extra}
-        </p>
-      )}
+      <CardModal
+        title={card.title}
+        trigger={
+          <>
+            <p className="font-semibold underline decoration-dotted underline-offset-2">{card.title}</p>
+            {card.subtitle && <p className="mt-0.5 text-xs text-ink/50">{card.subtitle}</p>}
+            <div className="mt-2 flex flex-wrap gap-1">
+              {card.badges.map((b, i) => (
+                <span
+                  key={i}
+                  className="tag"
+                  style={b.color ? { backgroundColor: b.color, color: "white", borderColor: "transparent" } : undefined}
+                >
+                  {b.label}
+                </span>
+              ))}
+            </div>
+            {card.extra && (
+              <p className="mt-1 text-xs" style={{ color: card.extraColor ?? "#78716c" }}>
+                {card.extra}
+              </p>
+            )}
+          </>
+        }
+      >
+        <div className="mb-4 flex flex-wrap gap-1">
+          {card.badges.map((b, i) => (
+            <span
+              key={i}
+              className="tag"
+              style={b.color ? { backgroundColor: b.color, color: "white", borderColor: "transparent" } : undefined}
+            >
+              {b.label}
+            </span>
+          ))}
+        </div>
+        <DetailFields fields={card.detail ?? []} />
+      </CardModal>
       {/* Déplacement au clavier, pour l'accessibilité (le drag souris ne suffit pas) */}
       <div className="mt-2 flex gap-1">
         <button

@@ -7,7 +7,8 @@ import {
   deadlineStatus,
   deadlineMessage,
 } from "@/lib/deadline";
-import { platformLabel, platformColor, formatDate } from "@/lib/constants";
+import { platformLabel, platformColor, formatDate, formatDateTime, publicationStatusLabel } from "@/lib/constants";
+import { CardModal, DetailFields } from "@/components/dataviews/CardModal";
 
 export const dynamic = "force-dynamic";
 
@@ -57,34 +58,66 @@ export default async function DashboardPage() {
                 {upcoming.map(({ pub, account, deadline, status }) => (
                   <li
                     key={pub.id}
-                    className="card flex flex-wrap items-center gap-2 p-3"
+                    className="card overflow-hidden"
                     style={{
                       borderLeftWidth: 8,
                       borderLeftColor:
                         status === "depassee" ? "#7A1512" : status === "proche" ? "#D97706" : (account?.color ?? "#1C1917"),
                     }}
                   >
-                    <span
-                      className="tag text-white"
-                      style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}
+                    <CardModal
+                      title={pub.title || "Sans titre"}
+                      triggerClassName="flex flex-wrap items-center gap-2 p-3"
+                      trigger={
+                        <>
+                          <span
+                            className="tag text-white"
+                            style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}
+                          >
+                            {platformLabel(pub.platform)}
+                          </span>
+                          <span className="font-semibold">{pub.title || "Sans titre"}</span>
+                          <span className="text-sm text-ink/50">
+                            {account?.name} · publication le {formatDate(pub.plannedAt)}
+                          </span>
+                          <span
+                            className={`ml-auto text-sm font-semibold ${
+                              status === "depassee"
+                                ? "text-danger"
+                                : status === "proche"
+                                  ? "text-warn"
+                                  : "text-ink/70"
+                            }`}
+                          >
+                            {deadlineMessage(deadline)}
+                          </span>
+                        </>
+                      }
                     >
-                      {platformLabel(pub.platform)}
-                    </span>
-                    <span className="font-semibold">{pub.title || "Sans titre"}</span>
-                    <span className="text-sm text-ink/50">
-                      {account?.name} · publication le {formatDate(pub.plannedAt)}
-                    </span>
-                    <span
-                      className={`ml-auto text-sm font-semibold ${
-                        status === "depassee"
-                          ? "text-danger"
-                          : status === "proche"
-                            ? "text-warn"
-                            : "text-ink/70"
-                      }`}
-                    >
-                      {deadlineMessage(deadline)}
-                    </span>
+                      <p
+                        className={`mb-4 font-semibold ${
+                          status === "depassee" ? "text-danger" : status === "proche" ? "text-warn" : "text-ok"
+                        }`}
+                      >
+                        {status === "depassee" && "⚠ "}
+                        {deadlineMessage(deadline)}
+                      </p>
+                      <DetailFields
+                        fields={[
+                          { label: "Marque", value: account?.name ?? "" },
+                          { label: "Plateforme", value: platformLabel(pub.platform) },
+                          { label: "Statut", value: publicationStatusLabel(pub.status) },
+                          { label: "Publication prévue le", value: formatDateTime(pub.plannedAt) },
+                          {
+                            label: "Délai de validation client",
+                            value: account ? `${account.validationDelayDays} jour(s)` : "",
+                          },
+                        ]}
+                      />
+                      <Link href="/planning" className="btn btn-accent mt-4">
+                        Ouvrir dans le planning
+                      </Link>
+                    </CardModal>
                   </li>
                 ))}
               </ul>
@@ -94,6 +127,7 @@ export default async function DashboardPage() {
           {/* KPI par compte */}
           <section className="mt-10">
             <h2 className="font-display text-2xl">Performance par compte</h2>
+            <p className="mt-1 text-xs text-ink/40">Clique sur une marque pour voir et modifier son espace complet.</p>
             <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {allAccounts.map((account) => {
                 const accountPubIds = new Set(
@@ -104,8 +138,16 @@ export default async function DashboardPage() {
                 );
                 const agg = aggregate(accountSnaps);
                 return (
-                  <div key={account.id} className="card p-4" style={{ borderTopWidth: 6, borderTopColor: account.color }}>
-                    <p className="font-display text-xl">{account.name}</p>
+                  <Link
+                    key={account.id}
+                    href={`/marques/${account.id}`}
+                    className="card block p-4 transition hover:shadow-[3px_3px_0_#1C1917]"
+                    style={{ borderTopWidth: 6, borderTopColor: account.color }}
+                  >
+                    <p className="flex items-center justify-between font-display text-xl">
+                      {account.name}
+                      <span className="text-xs font-sans font-normal text-ink/40">✎ modifier</span>
+                    </p>
                     <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                       <div>
                         <dt className="text-ink/50">Engagement</dt>
@@ -127,7 +169,7 @@ export default async function DashboardPage() {
                     <p className="mt-2 text-xs text-ink/40">
                       {agg.count} publication{agg.count > 1 ? "s" : ""} avec stats
                     </p>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

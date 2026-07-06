@@ -19,6 +19,7 @@ import {
   ideaStatusLabel,
   feasibilityLabel,
   feasibilityColor,
+  formatDateTime,
   IDEA_STATUSES,
 } from "@/lib/constants";
 
@@ -81,6 +82,7 @@ export default async function IdeesPage({
       ],
       color: evaluateColor(rules, "idees", row),
       column: idea.status,
+      columnLabel: ideaStatusLabel(idea.status),
       date: idea.createdAt,
       extra: ideaStatusLabel(idea.status),
       body: idea.content || undefined,
@@ -92,6 +94,17 @@ export default async function IdeesPage({
         feasibility: idea.feasibility ? feasibilityLabel(idea.feasibility) : "",
         status: ideaStatusLabel(idea.status),
       },
+      detail: [
+        { label: "Marque", value: account?.name ?? "" },
+        { label: "Statut", value: ideaStatusLabel(idea.status) },
+        { label: "Pilier", value: idea.pillar ?? "" },
+        { label: "Thème", value: idea.theme ?? "" },
+        { label: "Format", value: formatLabel(idea.format ?? "post") },
+        { label: "Plateforme", value: idea.platform ? platformLabel(idea.platform) : "" },
+        { label: "Faisabilité", value: idea.feasibility ? feasibilityLabel(idea.feasibility) : "" },
+        { label: "Source", value: idea.source === "ia" ? "IA" : "Manuelle" },
+        { label: "Créée le", value: formatDateTime(idea.createdAt) },
+      ],
     };
   });
 

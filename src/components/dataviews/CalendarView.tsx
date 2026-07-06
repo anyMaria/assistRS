@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DAYS_SHORT } from "@/lib/constants";
+import { CardModal, DetailFields } from "./CardModal";
 import type { DataCard } from "./types";
 
 export type CalendarDeadline = {
@@ -99,23 +100,42 @@ export function CalendarView({
                   </div>
                   <div className="mt-1 space-y-1">
                     {dayCards.map((c) => (
-                      <div
+                      <CardModal
                         key={c.id}
-                        className="border border-ink/15 bg-white p-1"
-                        style={{ borderLeftWidth: 3, borderLeftColor: c.color ?? "#1C1917" }}
-                      >
-                        <p className="truncate font-semibold">{c.title}</p>
-                        {displayProps.length > 0 && (
-                          <div className="mt-0.5 flex flex-wrap gap-0.5">
-                            {displayProps.map((p) => {
-                              const val = c.properties?.[p];
-                              return val ? (
-                                <span key={p} className="tag !px-1 !py-0 text-[9px]">{val}</span>
-                              ) : null;
-                            })}
+                        title={c.title}
+                        triggerClassName="border border-ink/15 bg-white p-1 hover:border-ink/40"
+                        trigger={
+                          <div
+                            className="border-l-[3px] pl-1"
+                            style={{ borderLeftColor: c.color ?? "#1C1917" }}
+                          >
+                            <p className="truncate font-semibold">{c.title}</p>
+                            {displayProps.length > 0 && (
+                              <div className="mt-0.5 flex flex-wrap gap-0.5">
+                                {displayProps.map((p) => {
+                                  const val = c.properties?.[p];
+                                  return val ? (
+                                    <span key={p} className="tag !px-1 !py-0 text-[9px]">{val}</span>
+                                  ) : null;
+                                })}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        }
+                      >
+                        <div className="mb-4 flex flex-wrap gap-1">
+                          {c.badges.map((b, i) => (
+                            <span
+                              key={i}
+                              className="tag"
+                              style={b.color ? { backgroundColor: b.color, color: "white", borderColor: "transparent" } : undefined}
+                            >
+                              {b.label}
+                            </span>
+                          ))}
+                        </div>
+                        <DetailFields fields={c.detail ?? []} />
+                      </CardModal>
                     ))}
                   </div>
                 </>

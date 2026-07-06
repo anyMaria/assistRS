@@ -16,8 +16,8 @@ import { PublicationForm } from "@/components/PublicationForm";
 import { evaluateColor } from "@/lib/color-rules";
 import type { RuleRow } from "@/lib/color-rules";
 import { parseViewSettings, applyViewSettings } from "@/lib/view-config";
-import { engagementRate, latestSnapshots } from "@/lib/kpi";
-import { computeVisualDeadline, deadlineStatus, daysUntil } from "@/lib/deadline";
+import { engagementRate, formatRate, latestSnapshots } from "@/lib/kpi";
+import { computeVisualDeadline, deadlineStatus, deadlineMessage, daysUntil } from "@/lib/deadline";
 import type { DataCard } from "@/components/dataviews/types";
 import {
   platformLabel,
@@ -25,6 +25,7 @@ import {
   formatLabel,
   publicationStatusLabel,
   formatDate,
+  formatDateTime,
   PUBLICATION_STATUSES,
 } from "@/lib/constants";
 
@@ -69,6 +70,8 @@ export default async function PlanningPage({
   let cards: DataCard[] = list.map((pub, i) => {
     const account = accountById.get(pub.accountId);
     const row = rows[i];
+    const snap = latest.get(pub.id);
+    const snapRate = snap ? engagementRate(snap) : null;
     const deadline =
       pub.status === "planifiee" && pub.plannedAt
         ? computeVisualDeadline(pub.plannedAt, account?.validationDelayDays ?? 3)
@@ -83,6 +86,7 @@ export default async function PlanningPage({
       ],
       color: evaluateColor(rules, "publications", row),
       column: pub.status,
+      columnLabel: publicationStatusLabel(pub.status),
       date: pub.plannedAt ?? pub.publishedAt ?? null,
       extra: deadline ? deadlineStatus(deadline) : publicationStatusLabel(pub.status),
       properties: {
@@ -92,6 +96,17 @@ export default async function PlanningPage({
         status: publicationStatusLabel(pub.status),
       },
       visualUrl: pub.visualUrl || undefined,
+      detail: [
+        { label: "Marque", value: account?.name ?? "" },
+        { label: "Statut", value: publicationStatusLabel(pub.status) },
+        { label: "Plateforme", value: platformLabel(pub.platform) },
+        { label: "Format", value: formatLabel(pub.format) },
+        { label: "Publication prévue le", value: formatDateTime(pub.plannedAt) },
+        { label: "Publiée le", value: formatDateTime(pub.publishedAt) },
+        { label: "Deadline visuel", value: deadline ? deadlineMessage(deadline) : "" },
+        { label: "Taux d'engagement", value: snapRate !== null ? formatRate(snapRate) : "" },
+        { label: "Lien", value: pub.url ?? "" },
+      ],
     };
   });
 
