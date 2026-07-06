@@ -1,13 +1,26 @@
 import { db, viewConfigs, colorRules, csvMappings } from "@/db";
-import { createView, deleteView, createColorRule, deleteColorRule, deleteCsvMapping } from "@/app/actions/settings";
+import {
+  createView,
+  deleteView,
+  updateViewSettings,
+  createColorRule,
+  deleteColorRule,
+  deleteCsvMapping,
+} from "@/app/actions/settings";
 import { ColorRuleForm } from "@/components/ColorRuleForm";
+import { ViewSettingsForm } from "@/components/ViewSettingsForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { RULE_FIELDS, operatorLabel } from "@/lib/color-rules";
 import { EXPORT_FORMATS } from "@/lib/formats";
 
 export const dynamic = "force-dynamic";
 
-const TYPE_LABEL: Record<string, string> = { table: "Table", kanban: "Kanban", calendrier: "Calendrier" };
+const TYPE_LABEL: Record<string, string> = {
+  table: "Table",
+  kanban: "Kanban",
+  calendrier: "Calendrier",
+  galerie: "Galerie",
+};
 const ENTITY_LABEL: Record<string, string> = { idees: "Idées", publications: "Publications" };
 
 export default async function ParametresPage() {
@@ -25,16 +38,20 @@ export default async function ParametresPage() {
         <h2 className="font-display text-2xl">Vues sauvegardées</h2>
         <div className="mt-3 space-y-2">
           {views.map((v) => (
-            <div key={v.id} className="card flex items-center gap-3 p-3">
-              <span className="tag">{ENTITY_LABEL[v.entity] ?? v.entity}</span>
-              <span className="tag">{TYPE_LABEL[v.type] ?? v.type}</span>
-              <span className="font-semibold">{v.name}</span>
-              <form action={deleteView.bind(null, v.id)} className="ml-auto">
-                <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">
-                  Supprimer
-                </button>
-              </form>
-            </div>
+            <details key={v.id} className="card">
+              <summary className="flex cursor-pointer items-center gap-3 p-3">
+                <span className="tag">{ENTITY_LABEL[v.entity] ?? v.entity}</span>
+                <span className="tag">{TYPE_LABEL[v.type] ?? v.type}</span>
+                <span className="font-semibold">{v.name}</span>
+                <span className="ml-auto text-xs text-ink/40">⚙ réglages</span>
+                <form action={deleteView.bind(null, v.id)}>
+                  <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">
+                    Supprimer
+                  </button>
+                </form>
+              </summary>
+              <ViewSettingsForm view={v} action={updateViewSettings.bind(null, v.id)} />
+            </details>
           ))}
         </div>
         <details className="card mt-4">
@@ -53,6 +70,7 @@ export default async function ParametresPage() {
                 <option value="table">Table</option>
                 <option value="kanban">Kanban</option>
                 <option value="calendrier">Calendrier</option>
+                <option value="galerie">Galerie</option>
               </select>
             </label>
             <label className="md:col-span-2">

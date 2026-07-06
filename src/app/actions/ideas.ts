@@ -7,10 +7,12 @@ import { db, ideas, publications } from "@/db";
 
 const ideaSchema = z.object({
   accountId: z.coerce.number().int(),
-  theme: z.string().min(1),
+  theme: z.string().default(""),
   title: z.string().min(1),
   format: z.string().default("post"),
   platform: z.string().default(""),
+  pillar: z.string().default(""),
+  feasibility: z.string().default(""),
   content: z.string().default(""),
   status: z.enum(["idee", "en_production", "publiee"]).default("idee"),
   source: z.enum(["ia", "manuelle"]).default("manuelle"),
@@ -19,10 +21,12 @@ const ideaSchema = z.object({
 export async function createIdea(formData: FormData) {
   const data = ideaSchema.parse({
     accountId: formData.get("accountId"),
-    theme: formData.get("theme") || formData.get("title"),
+    theme: formData.get("theme") || formData.get("pillar") || formData.get("title"),
     title: formData.get("title"),
     format: formData.get("format") ?? "post",
     platform: formData.get("platform") ?? "",
+    pillar: formData.get("pillar") ?? "",
+    feasibility: formData.get("feasibility") ?? "",
     content: formData.get("content") ?? "",
     status: formData.get("status") ?? "idee",
     source: formData.get("source") ?? "manuelle",
@@ -50,6 +54,8 @@ export async function duplicateIdea(id: number) {
     title: `${idea.title} (copie)`,
     format: idea.format,
     platform: idea.platform,
+    pillar: idea.pillar,
+    feasibility: idea.feasibility,
     content: idea.content,
     status: "idee",
     source: idea.source,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { db, ideas, accounts, viewConfigs, colorRules } from "@/db";
+import { db, ideas, accounts, brandEditorial, viewConfigs, colorRules } from "@/db";
 import { createIdea, deleteIdea, setIdeaStatus, planifierIdee, duplicateIdea } from "@/app/actions/ideas";
 import { ViewTabs } from "@/components/dataviews/ViewTabs";
 import { TableView } from "@/components/dataviews/TableView";
@@ -9,8 +9,18 @@ import { CalendarView } from "@/components/dataviews/CalendarView";
 import { IdeaForm } from "@/components/IdeaForm";
 import { PlanifierIdeeForm } from "@/components/PlanifierIdeeForm";
 import { evaluateColor } from "@/lib/color-rules";
+import { parseViewSettings, applyViewSettings } from "@/lib/view-config";
 import type { DataCard } from "@/components/dataviews/types";
-import { platformLabel, platformColor, formatLabel, ideaStatusLabel, IDEA_STATUSES } from "@/lib/constants";
+import type { RuleRow } from "@/lib/color-rules";
+import {
+  platformLabel,
+  platformColor,
+  formatLabel,
+  ideaStatusLabel,
+  feasibilityLabel,
+  feasibilityColor,
+  IDEA_STATUSES,
+} from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +37,35 @@ export default async function IdeesPage({
   const allAccounts = await db.select().from(accounts);
   const list = await db.select().from(ideas).orderBy(desc(ideas.createdAt));
   const rules = await db.select().from(colorRules);
+  const editorials = await db.select().from(brandEditorial);
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
 
-  const cards: DataCard[] = list.map((idea) => {
+  const pillarsByAccount: Record<number, string[]> = {};
+  for (const ed of editorials) {
+    try {
+      const pillars: { name: string }[] = JSON.parse(ed.pillars || "[]");
+      pillarsByAccount[ed.accountId] = pillars.map((p) => p.name).filter(Boolean);
+    } catch {
+      pillarsByAccount[ed.accountId] = [];
+    }
+  }
+
+  const rows: RuleRow[] = list.map((idea) => {
     const account = accountById.get(idea.accountId);
-    const row = { status: idea.status, platform: idea.platform, format: idea.format, source: idea.source };
+    return {
+      status: idea.status,
+      account: account?.name ?? "",
+      platform: idea.platform,
+      format: idea.format,
+      pillar: idea.pillar,
+      feasibility: idea.feasibility,
+      source: idea.source,
+    };
+  });
+
+  let cards: DataCard[] = list.map((idea, i) => {
+    const account = accountById.get(idea.accountId);
+    const row = rows[i];
     return {
       id: idea.id,
       title: idea.title,
@@ -39,6 +73,10 @@ export default async function IdeesPage({
       badges: [
         ...(idea.platform ? [{ label: platformLabel(idea.platform), color: platformColor(idea.platform) }] : []),
         { label: formatLabel(idea.format ?? "post") },
+        ...(idea.pillar ? [{ label: idea.pillar }] : []),
+        ...(idea.feasibility
+          ? [{ label: feasibilityLabel(idea.feasibility), color: feasibilityColor(idea.feasibility) }]
+          : []),
         { label: idea.source === "ia" ? "IA" : "manuelle" },
       ],
       color: evaluateColor(rules, "idees", row),
@@ -46,8 +84,19 @@ export default async function IdeesPage({
       date: idea.createdAt,
       extra: ideaStatusLabel(idea.status),
       body: idea.content || undefined,
+      properties: {
+        account: account?.name ?? "",
+        platform: idea.platform ? platformLabel(idea.platform) : "",
+        format: formatLabel(idea.format ?? "post"),
+        pillar: idea.pillar ?? "",
+        feasibility: idea.feasibility ? feasibilityLabel(idea.feasibility) : "",
+        status: ideaStatusLabel(idea.status),
+      },
     };
   });
+
+  const settings = parseViewSettings(activeView?.config);
+  ({ items: cards } = applyViewSettings(cards, rows, settings));
 
   const month = mois ?? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
 
@@ -67,7 +116,7 @@ export default async function IdeesPage({
           <details className="card mt-6">
             <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouvelle idée</summary>
             <div className="border-t-2 border-ink p-5">
-              <IdeaForm accounts={allAccounts} action={createIdea} />
+              <IdeaForm accounts={allAccounts} pillarsByAccount={pillarsByAccount} action={createIdea} />
             </div>
           </details>
 
@@ -81,26 +130,30 @@ export default async function IdeesPage({
                 <TableView
                   cards={cards}
                   columnLabel="Statut"
-                  actions={(card) => {
+                  planningLabel="Ajout dans le planning"
+                  planning={(card) => {
                     const idea = list.find((i) => i.id === card.id)!;
                     const bindPlanifier = planifierIdee.bind(null, idea.id);
+                    return (
+                      <PlanifierIdeeForm defaultPlatform={idea.platform ?? undefined} action={bindPlanifier} />
+                    );
+                  }}
+                  actions={(card) => {
+                    const idea = list.find((i) => i.id === card.id)!;
                     const bindDuplicate = duplicateIdea.bind(null, idea.id);
                     const bindDelete = deleteIdea.bind(null, idea.id);
                     return (
-                      <div className="space-y-2">
-                        <PlanifierIdeeForm defaultPlatform={idea.platform ?? undefined} action={bindPlanifier} />
-                        <div className="flex gap-3 text-xs">
-                          <form action={bindDuplicate}>
-                            <button type="submit" className="font-semibold text-ink/60 underline underline-offset-2">
-                              Dupliquer
-                            </button>
-                          </form>
-                          <form action={bindDelete}>
-                            <button type="submit" className="font-semibold text-danger underline underline-offset-2">
-                              Supprimer
-                            </button>
-                          </form>
-                        </div>
+                      <div className="flex gap-3 text-xs">
+                        <form action={bindDuplicate}>
+                          <button type="submit" className="font-semibold text-ink/60 underline underline-offset-2">
+                            Dupliquer
+                          </button>
+                        </form>
+                        <form action={bindDelete}>
+                          <button type="submit" className="font-semibold text-danger underline underline-offset-2">
+                            Supprimer
+                          </button>
+                        </form>
                       </div>
                     );
                   }}
@@ -116,7 +169,12 @@ export default async function IdeesPage({
               )}
 
               {activeView.type === "calendrier" && (
-                <CalendarView cards={cards} month={month} basePath="/idees" />
+                <CalendarView
+                  cards={cards}
+                  month={month}
+                  basePath="/idees"
+                  displayProps={settings.displayProps}
+                />
               )}
             </>
           ) : (

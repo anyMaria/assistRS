@@ -42,6 +42,8 @@ export const ideas = sqliteTable("ideas", {
   title: text("title").notNull(),
   format: text("format").default("post"),
   platform: text("platform").default(""),
+  pillar: text("pillar").default(""), // pilier de la ligne éditoriale de la marque (brand_editorial.pillars)
+  feasibility: text("feasibility").default(""), // faible | moyenne | elevee (temps de production estimé)
   content: text("content").notNull(), // structure détaillée (texte)
   status: text("status").notNull().default("idee"), // idee | en_production | publiee
   source: text("source").notNull().default("manuelle"), // ia | manuelle
@@ -63,6 +65,7 @@ export const publications = sqliteTable("publications", {
   plannedAt: integer("planned_at", { mode: "timestamp" }),
   publishedAt: integer("published_at", { mode: "timestamp" }),
   url: text("url").default(""),
+  visualUrl: text("visual_url").default(""), // aperçu du visuel final (URL directe pour l'instant)
   ideaId: integer("idea_id").references(() => ideas.id, {
     onDelete: "set null",
   }),

@@ -14,6 +14,7 @@ const pubSchema = z.object({
   plannedAt: z.string().optional(),
   publishedAt: z.string().optional(),
   url: z.string().default(""),
+  visualUrl: z.string().default(""),
   ideaId: z.coerce.number().int().optional(),
 });
 
@@ -33,6 +34,7 @@ function parsePubForm(formData: FormData) {
     plannedAt: formData.get("plannedAt")?.toString() || undefined,
     publishedAt: formData.get("publishedAt")?.toString() || undefined,
     url: formData.get("url") ?? "",
+    visualUrl: formData.get("visualUrl") ?? "",
     ideaId: formData.get("ideaId")?.toString() || undefined,
   });
   return {

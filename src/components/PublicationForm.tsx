@@ -79,6 +79,15 @@ export function PublicationForm({
         <span className="field-label">Lien</span>
         <input name="url" defaultValue={publication?.url ?? ""} className="field" placeholder="https://…" />
       </label>
+      <label className="md:col-span-2">
+        <span className="field-label">Visuel (URL de l&apos;image finale)</span>
+        <input
+          name="visualUrl"
+          defaultValue={publication?.visualUrl ?? ""}
+          className="field"
+          placeholder="https://… (pour la vue Galerie)"
+        />
+      </label>
       <div className="md:col-span-3">
         <SubmitButton label={submitLabel} />
       </div>

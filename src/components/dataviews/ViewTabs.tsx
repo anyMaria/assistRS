@@ -5,6 +5,7 @@ const TYPE_ICONS: Record<string, string> = {
   table: "☰",
   kanban: "▥",
   calendrier: "▦",
+  galerie: "▨",
 };
 
 /** Sélecteur de vues sauvegardées (façon Notion), navigation par ?vue=<id> */

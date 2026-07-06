@@ -10,7 +10,7 @@ export function PlanifierIdeeForm({
   action: (formData: FormData) => Promise<void>;
 }) {
   return (
-    <form action={action} className="flex flex-wrap items-end gap-2">
+    <form action={action} className="flex min-w-48 flex-col gap-2">
       <label>
         <span className="field-label">Plateforme</span>
         <select name="platform" defaultValue={defaultPlatform || PLATFORMS[0].value} className="field !py-1 text-xs">
@@ -20,10 +20,10 @@ export function PlanifierIdeeForm({
         </select>
       </label>
       <label>
-        <span className="field-label">Publication le</span>
+        <span className="field-label">Date de publication</span>
         <input type="datetime-local" name="plannedAt" className="field !py-1 text-xs" />
       </label>
-      <SubmitButton label="Planifier cette idée" loadingLabel="Planification…" className="!py-1.5 text-xs" />
+      <SubmitButton label="→ Ajouter au planning" loadingLabel="Ajout…" className="w-full justify-center" />
     </form>
   );
 }

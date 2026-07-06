@@ -30,6 +30,25 @@ export const PUBLICATION_STATUSES = [
   { value: "publiee", label: "Publiée" },
 ] as const;
 
+export const FEASIBILITY_LEVELS = [
+  { value: "faible", label: "Peu de temps", color: "#3D7C47" },
+  { value: "moyenne", label: "Moyennement de temps", color: "#D97706" },
+  { value: "elevee", label: "Beaucoup de temps", color: "#7A1512" },
+] as const;
+
+/** Suggestion par défaut selon le format — reste modifiable à la main. */
+export function suggestedFeasibility(format: string): string {
+  if (format === "reel" || format === "carrousel") return "moyenne";
+  return "faible";
+}
+
+export function feasibilityLabel(value: string): string {
+  return FEASIBILITY_LEVELS.find((f) => f.value === value)?.label ?? value;
+}
+export function feasibilityColor(value: string): string {
+  return FEASIBILITY_LEVELS.find((f) => f.value === value)?.color ?? "#1C1917";
+}
+
 export const CONTENT_TYPES = [
   { value: "post", label: "Posts" },
   { value: "reel", label: "Reels" },

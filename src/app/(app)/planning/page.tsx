@@ -11,8 +11,11 @@ import { ViewTabs } from "@/components/dataviews/ViewTabs";
 import { TableView } from "@/components/dataviews/TableView";
 import { KanbanView } from "@/components/dataviews/KanbanView";
 import { CalendarView, type CalendarDeadline } from "@/components/dataviews/CalendarView";
+import { GalleryView } from "@/components/dataviews/GalleryView";
 import { PublicationForm } from "@/components/PublicationForm";
 import { evaluateColor } from "@/lib/color-rules";
+import type { RuleRow } from "@/lib/color-rules";
+import { parseViewSettings, applyViewSettings } from "@/lib/view-config";
 import { engagementRate, latestSnapshots } from "@/lib/kpi";
 import { computeVisualDeadline, deadlineStatus, daysUntil } from "@/lib/deadline";
 import type { DataCard } from "@/components/dataviews/types";
@@ -44,7 +47,7 @@ export default async function PlanningPage({
   const latest = latestSnapshots(snaps);
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
 
-  const cards: DataCard[] = list.map((pub) => {
+  const rows: RuleRow[] = list.map((pub) => {
     const account = accountById.get(pub.accountId);
     const snap = latest.get(pub.id);
     const snapRate = snap ? engagementRate(snap) : null;
@@ -53,13 +56,23 @@ export default async function PlanningPage({
       pub.status === "planifiee" && pub.plannedAt
         ? computeVisualDeadline(pub.plannedAt, account?.validationDelayDays ?? 3)
         : null;
-    const row = {
+    return {
       status: pub.status,
+      account: account?.name ?? "",
       platform: pub.platform,
       format: pub.format,
       deadline: deadline ? daysUntil(deadline) : null,
       engagementRate: rate,
     };
+  });
+
+  let cards: DataCard[] = list.map((pub, i) => {
+    const account = accountById.get(pub.accountId);
+    const row = rows[i];
+    const deadline =
+      pub.status === "planifiee" && pub.plannedAt
+        ? computeVisualDeadline(pub.plannedAt, account?.validationDelayDays ?? 3)
+        : null;
     return {
       id: pub.id,
       title: pub.title || "Sans titre",
@@ -72,8 +85,18 @@ export default async function PlanningPage({
       column: pub.status,
       date: pub.plannedAt ?? pub.publishedAt ?? null,
       extra: deadline ? deadlineStatus(deadline) : publicationStatusLabel(pub.status),
+      properties: {
+        account: account?.name ?? "",
+        platform: platformLabel(pub.platform),
+        format: formatLabel(pub.format),
+        status: publicationStatusLabel(pub.status),
+      },
+      visualUrl: pub.visualUrl || undefined,
     };
   });
+
+  const settings = parseViewSettings(activeView?.config);
+  ({ items: cards } = applyViewSettings(cards, rows, settings));
 
   const deadlines: CalendarDeadline[] = list
     .filter((p) => p.status === "planifiee" && p.plannedAt)
@@ -156,8 +179,16 @@ export default async function PlanningPage({
               )}
 
               {activeView.type === "calendrier" && (
-                <CalendarView cards={cards} deadlines={deadlines} month={month} basePath="/planning" />
+                <CalendarView
+                  cards={cards}
+                  deadlines={deadlines}
+                  month={month}
+                  basePath="/planning"
+                  displayProps={settings.displayProps}
+                />
               )}
+
+              {activeView.type === "galerie" && <GalleryView cards={cards} />}
             </>
           ) : (
             <p className="mt-6 text-ink/50 italic">

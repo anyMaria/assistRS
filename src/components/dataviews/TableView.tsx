@@ -4,10 +4,15 @@ import type { DataCard } from "./types";
 export function TableView({
   cards,
   columnLabel,
+  planningLabel,
+  planning,
   actions,
 }: {
   cards: DataCard[];
   columnLabel: string;
+  /** En-tête de la colonne dédiée à la planification (ex. « Ajout dans le planning »). */
+  planningLabel?: string;
+  planning?: (card: DataCard) => React.ReactNode;
   actions?: (card: DataCard) => React.ReactNode;
 }) {
   if (cards.length === 0) {
@@ -22,6 +27,7 @@ export function TableView({
             <th className="p-3">Étiquettes</th>
             <th className="p-3">{columnLabel}</th>
             <th className="p-3">Détail</th>
+            {planning && <th className="border-l-2 border-ink bg-paper p-3">{planningLabel ?? "Planning"}</th>}
             {actions && <th className="p-3" />}
           </tr>
         </thead>
@@ -64,6 +70,7 @@ export function TableView({
               <td className="p-3 text-xs" style={{ color: card.extraColor ?? "#78716c" }}>
                 {card.extra ?? "—"}
               </td>
+              {planning && <td className="border-l-2 border-ink bg-paper/60 p-3">{planning(card)}</td>}
               {actions && <td className="p-3">{actions(card)}</td>}
             </tr>
           ))}

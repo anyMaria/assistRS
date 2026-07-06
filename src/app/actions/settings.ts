@@ -45,7 +45,7 @@ export async function deleteColorRule(id: number) {
 const viewSchema = z.object({
   entity: z.enum(["idees", "publications"]),
   name: z.string().min(1),
-  type: z.enum(["table", "kanban", "calendrier"]),
+  type: z.enum(["table", "kanban", "calendrier", "galerie"]),
   groupBy: z.string().default("status"),
 });
 
@@ -67,6 +67,50 @@ export async function createView(formData: FormData) {
 
 export async function deleteView(id: number) {
   await db.delete(viewConfigs).where(eq(viewConfigs.id, id));
+  revalidateViews();
+}
+
+// ——— Réglages d'une vue : propriétés affichées, tri, filtres ———
+
+function jsonArray(formData: FormData, key: string): unknown[] {
+  const raw = formData.get(key)?.toString() || "[]";
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+const settingsSchema = z.object({
+  groupBy: z.string().default("status"),
+  sortBy: z.string().default(""),
+  sortDir: z.enum(["asc", "desc"]).default("asc"),
+});
+
+export async function updateViewSettings(id: number, formData: FormData) {
+  const data = settingsSchema.parse({
+    groupBy: formData.get("groupBy") ?? "status",
+    sortBy: formData.get("sortBy") ?? "",
+    sortDir: formData.get("sortDir") ?? "asc",
+  });
+  const displayProps = formData.getAll("displayProps").map(String);
+  const filters = jsonArray(formData, "filters").filter(
+    (f): f is { field: string; operator: string; value: string } =>
+      !!f && typeof f === "object" && "field" in f && !!(f as { field?: string }).field,
+  );
+  await db
+    .update(viewConfigs)
+    .set({
+      config: JSON.stringify({
+        groupBy: data.groupBy,
+        displayProps,
+        sortBy: data.sortBy || undefined,
+        sortDir: data.sortDir,
+        filters,
+      }),
+    })
+    .where(eq(viewConfigs.id, id));
   revalidateViews();
 }
 

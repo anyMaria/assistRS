@@ -25,6 +25,7 @@ export function CalendarView({
   month,
   basePath,
   extraParams = "",
+  displayProps = [],
 }: {
   cards: DataCard[];
   deadlines?: CalendarDeadline[];
@@ -32,6 +33,8 @@ export function CalendarView({
   month: string;
   basePath: string;
   extraParams?: string;
+  /** Propriétés à afficher sur chaque carreau (réglables dans /parametres). */
+  displayProps?: string[];
 }) {
   const [year, m] = month.split("-").map(Number);
   const first = new Date(year, m - 1, 1);
@@ -75,7 +78,7 @@ export function CalendarView({
           return (
             <div
               key={i}
-              className="min-h-24 border-b border-r border-ink/10 p-1.5 align-top text-xs last:border-r-0"
+              className="min-h-28 border-b border-r border-ink/10 p-1.5 align-top text-xs last:border-r-0"
             >
               {day && (
                 <>
@@ -96,12 +99,22 @@ export function CalendarView({
                   </div>
                   <div className="mt-1 space-y-1">
                     {dayCards.map((c) => (
-                      <div key={c.id} className="flex items-center gap-1 truncate">
-                        <span
-                          className="h-2 w-2 shrink-0 border border-ink/40"
-                          style={{ backgroundColor: c.color ?? "#1C1917" }}
-                        />
-                        <span className="truncate">{c.title}</span>
+                      <div
+                        key={c.id}
+                        className="border border-ink/15 bg-white p-1"
+                        style={{ borderLeftWidth: 3, borderLeftColor: c.color ?? "#1C1917" }}
+                      >
+                        <p className="truncate font-semibold">{c.title}</p>
+                        {displayProps.length > 0 && (
+                          <div className="mt-0.5 flex flex-wrap gap-0.5">
+                            {displayProps.map((p) => {
+                              const val = c.properties?.[p];
+                              return val ? (
+                                <span key={p} className="tag !px-1 !py-0 text-[9px]">{val}</span>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
