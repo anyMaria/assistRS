@@ -391,7 +391,7 @@ mot de passe `trinkets`) → (7) re-test rapide des pages existantes → (8) com
 ### G6 — Rituels : bilan hebdo, rituel mensuel, e-mails
 
 - Installer `resend`. `src/lib/email.ts` : expéditeur `onboarding@resend.dev`,
-  destinataire `anymaridim@gmail.com` (constantes), gabarit HTML simple aux couleurs de
+  destinataire `sv7hrj3vz@mozmail.com` (constantes), gabarit HTML simple aux couleurs de
   l'app.
 - **Un seul cron Vercel** (limite du plan Hobby : fréquence quotidienne) :
   `vercel.json` → `{ "crons": [{ "path": "/api/cron/quotidien", "schedule": "0 6 * * *" }] }`.
@@ -620,7 +620,7 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 await resend.emails.send({
   from: "Assist RS <onboarding@resend.dev>",
-  to: "anymaridim@gmail.com",
+  to: "sv7hrj3vz@mozmail.com",
   subject: "Ton bilan de la semaine — Assist RS",
   html, // gabarit simple : fond #F6F2EA, encre #1C1917, listes d'actions avec liens vers l'app
 });

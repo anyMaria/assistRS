@@ -4,7 +4,7 @@
 > ont été acceptées par Ana. Ce document est la référence produit ; le mode d'emploi
 > technique pour le modèle exécutant est dans `docs/GUIDELINE.md`.
 >
-> **Décisions finales** : e-mails envoyés vers `anymaridim@gmail.com` (adresse de test
+> **Décisions finales** : e-mails envoyés vers `sv7hrj3vz@mozmail.com` (adresse de test
 > Resend au départ, pas de domaine) · les rapports PDF portent la mention « Généré avec
 > Assist RS » (pas Trinkets Design) · moodboards par marque **et** par thème.
 
@@ -269,7 +269,7 @@ Existant (relevés, KPI, comparaisons, import CSV avec mapping, croisement horai
 ## 8. Pôle Rituels
 
 1. **Bilan hebdomadaire** (lundi 8 h Paris, cron Vercel) — e-mail via Resend vers
-   `anymaridim@gmail.com` **et** page `/bilan` : deadlines de la semaine, publications à
+   `sv7hrj3vz@mozmail.com` **et** page `/bilan` : deadlines de la semaine, publications à
    programmer, validations client en retard, publications « à relever », stats
    marquantes de la semaine passée. Ton bref, actionnable.
 2. **Rituel mensuel** (1er du mois) — notification e-mail + bandeau in-app : « 15 min
@@ -326,7 +326,7 @@ Nouvelles tables :
 |---|---|---|
 | Google Gemini | génération/analyse — **palier gratuit** (~1 500 req/jour), clé créée sur aistudio.google.com | `GEMINI_API_KEY`, `GEMINI_MODEL` |
 | Apify | scrapers S'inspirer (5 actors §5.2) | `APIFY_TOKEN` |
-| Resend | bilans + rituels + envoi de rapports — destinataire `anymaridim@gmail.com`, expéditeur `onboarding@resend.dev` tant qu'aucun domaine n'est vérifié | `RESEND_API_KEY` |
+| Resend | bilans + rituels + envoi de rapports — destinataire `sv7hrj3vz@mozmail.com`, expéditeur `onboarding@resend.dev` tant qu'aucun domaine n'est vérifié | `RESEND_API_KEY` |
 | Vercel Blob | logos, assets, moodboards, rapports PDF (`access: "private"`) | `BLOB_READ_WRITE_TOKEN` |
 | Turso | base de données prod | `DATABASE_URL`, `DATABASE_AUTH_TOKEN` |
 
