@@ -129,6 +129,89 @@ export const colorRules = sqliteTable("color_rules", {
   label: text("label").default(""),
 });
 
+// Contexte d'entreprise de la marque (1-1 accounts) — CONCEPTION.md §3.1
+export const brandProfiles = sqliteTable("brand_profiles", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .unique()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  size: text("size").default(""), // solo | tpe | pme | collectivite
+  location: text("location").default(""),
+  description: text("description").default(""),
+  offering: text("offering").default(""),
+  positioning: text("positioning").default(""),
+  personas: text("personas").default(""),
+  keyPeople: text("key_people").notNull().default("[]"), // JSON [{name, role, contact, prefs}]
+  competitors: text("competitors").notNull().default("[]"), // JSON [string]
+  seasonality: text("seasonality").notNull().default("[]"), // JSON [{label, period}]
+  links: text("links").notNull().default("[]"), // JSON [{platform, url}]
+});
+
+// Identité visuelle (1-1 accounts) — CONCEPTION.md §3.2
+export const brandIdentity = sqliteTable("brand_identity", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .unique()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  palette: text("palette").notNull().default("[]"), // JSON [{name, hex}]
+  fonts: text("fonts").notNull().default("[]"), // JSON [{name, usage}]
+  imageStyle: text("image_style").default(""),
+  usageRules: text("usage_rules").default(""),
+});
+
+// Assets réutilisables (logo, gabarit, photo, moodboard) — CONCEPTION.md §3.2
+export const brandAssets = sqliteTable("brand_assets", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  type: text("type").notNull().default("logo"), // logo | gabarit | photo | moodboard
+  blobUrl: text("blob_url").notNull().default(""),
+  name: text("name").notNull().default(""),
+  tags: text("tags").notNull().default("[]"), // JSON [string]
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Ligne éditoriale (1-1 accounts) — CONCEPTION.md §3.3
+export const brandEditorial = sqliteTable("brand_editorial", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .unique()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  mainMessage: text("main_message").default(""),
+  secondaryMessages: text("secondary_messages").notNull().default("[]"), // JSON [string]
+  pillars: text("pillars").notNull().default("[]"), // JSON [{name, sharePercent}]
+  toneVoice: text("tone_voice").default(""),
+  toneExamples: text("tone_examples").notNull().default("[]"), // JSON [{onDit, onNeDitPas}]
+  dos: text("dos").notNull().default("[]"), // JSON [string]
+  donts: text("donts").notNull().default("[]"), // JSON [string]
+  baseHashtags: text("base_hashtags").notNull().default("[]"), // JSON [string]
+  bannedHashtags: text("banned_hashtags").notNull().default("[]"), // JSON [string]
+  emojiPolicy: text("emoji_policy").notNull().default("parcimonie"), // jamais | parcimonie | librement
+  ctas: text("ctas").notNull().default("[]"), // JSON [string]
+  languages: text("languages").default("fr"),
+  legalMentions: text("legal_mentions").default(""),
+});
+
+// Mémoire de corrections IA (1-n accounts) — CONCEPTION.md §3.4
+export const brandMemoryRules = sqliteTable("brand_memory_rules", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  rule: text("rule").notNull(),
+  origin: text("origin").default(""),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
@@ -138,3 +221,8 @@ export type TimeSlot = typeof timeSlots.$inferSelect;
 export type CsvMapping = typeof csvMappings.$inferSelect;
 export type ViewConfig = typeof viewConfigs.$inferSelect;
 export type ColorRule = typeof colorRules.$inferSelect;
+export type BrandProfile = typeof brandProfiles.$inferSelect;
+export type BrandIdentity = typeof brandIdentity.$inferSelect;
+export type BrandAsset = typeof brandAssets.$inferSelect;
+export type BrandEditorial = typeof brandEditorial.$inferSelect;
+export type BrandMemoryRule = typeof brandMemoryRules.$inferSelect;

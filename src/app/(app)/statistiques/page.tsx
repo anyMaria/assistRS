@@ -43,7 +43,7 @@ export default async function StatistiquesPage({
 
       {allAccounts.length === 0 ? (
         <p className="card mt-6 p-5">
-          Commence par <Link href="/comptes" className="font-semibold text-accent underline">créer un compte</Link>.
+          Commence par <Link href="/marques" className="font-semibold text-accent underline">créer une marque</Link>.
         </p>
       ) : (
         <>

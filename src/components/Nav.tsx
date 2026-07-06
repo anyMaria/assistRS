@@ -11,7 +11,7 @@ const items = [
   { href: "/programmation", label: "Horaires", short: "Horaires", icon: "◔" },
   { href: "/statistiques", label: "Statistiques", short: "Stats", icon: "▁▃▅" },
   { href: "/analyse", label: "Analyse", short: "Analyse", icon: "◎" },
-  { href: "/comptes", label: "Comptes", short: "Comptes", icon: "▣" },
+  { href: "/marques", label: "Marques", short: "Marques", icon: "▣" },
   { href: "/parametres", label: "Paramètres", short: "Réglages", icon: "⚙" },
 ];
 

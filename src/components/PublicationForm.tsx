@@ -1,5 +1,6 @@
 import type { Account, Publication } from "@/db/schema";
 import { PLATFORMS, FORMATS, PUBLICATION_STATUSES } from "@/lib/constants";
+import { SubmitButton } from "@/components/SubmitButton";
 
 function toLocalInput(d: Date | null): string {
   if (!d) return "";
@@ -79,7 +80,7 @@ export function PublicationForm({
         <input name="url" defaultValue={publication?.url ?? ""} className="field" placeholder="https://…" />
       </label>
       <div className="md:col-span-3">
-        <button type="submit" className="btn btn-accent">{submitLabel}</button>
+        <SubmitButton label={submitLabel} />
       </div>
     </form>
   );

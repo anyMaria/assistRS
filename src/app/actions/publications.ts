@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, publications, statSnapshots } from "@/db";
+import { db, publications, statSnapshots, ideas } from "@/db";
 
 const pubSchema = z.object({
   accountId: z.coerce.number().int(),
@@ -61,16 +61,38 @@ export async function updatePublication(id: number, formData: FormData) {
 
 export async function setPublicationStatus(id: number, status: string) {
   const patch: Record<string, unknown> = { status };
+  const [pub] = await db.select().from(publications).where(eq(publications.id, id));
   if (status === "publiee") {
-    const [pub] = await db.select().from(publications).where(eq(publications.id, id));
     if (pub && !pub.publishedAt) patch.publishedAt = pub.plannedAt ?? new Date();
   }
   await db.update(publications).set(patch).where(eq(publications.id, id));
+  // La publication ne met jamais à jour deux statuts à la main : l'idée liée suit.
+  if (status === "publiee" && pub?.ideaId) {
+    await db.update(ideas).set({ status: "publiee" }).where(eq(ideas.id, pub.ideaId));
+    revalidatePath("/idees");
+  }
   revalidateAll();
 }
 
 export async function deletePublication(id: number) {
   await db.delete(publications).where(eq(publications.id, id));
+  revalidateAll();
+}
+
+export async function duplicatePublication(id: number) {
+  const [pub] = await db.select().from(publications).where(eq(publications.id, id));
+  if (!pub) return;
+  await db.insert(publications).values({
+    accountId: pub.accountId,
+    platform: pub.platform,
+    format: pub.format,
+    title: `${pub.title} (copie)`,
+    status: "planifiee",
+    plannedAt: null,
+    publishedAt: null,
+    url: "",
+    ideaId: null,
+  });
   revalidateAll();
 }
 

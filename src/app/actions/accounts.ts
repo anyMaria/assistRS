@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, accounts } from "@/db";
@@ -32,7 +33,7 @@ function parseAccountForm(formData: FormData) {
 export async function createAccount(formData: FormData) {
   const data = parseAccountForm(formData);
   await db.insert(accounts).values({ ...data, platforms: JSON.stringify(data.platforms) });
-  revalidatePath("/comptes");
+  revalidatePath("/marques");
 }
 
 export async function updateAccount(id: number, formData: FormData) {
@@ -41,10 +42,16 @@ export async function updateAccount(id: number, formData: FormData) {
     .update(accounts)
     .set({ ...data, platforms: JSON.stringify(data.platforms) })
     .where(eq(accounts.id, id));
-  revalidatePath("/comptes");
+  revalidatePath("/marques");
 }
 
 export async function deleteAccount(id: number) {
   await db.delete(accounts).where(eq(accounts.id, id));
-  revalidatePath("/comptes");
+  revalidatePath("/marques");
+}
+
+export async function deleteAccountAndRedirect(id: number) {
+  await db.delete(accounts).where(eq(accounts.id, id));
+  revalidatePath("/marques");
+  redirect("/marques");
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import { db, accounts, publications, statSnapshots } from "@/db";
 import { aggregate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
 import {
@@ -40,7 +40,7 @@ export default async function DashboardPage() {
           <p className="mt-2 text-ink/60">
             Commence par créer ton premier compte (ta marque, un client…).
           </p>
-          <Link href="/comptes" className="btn btn-accent mt-5">Créer un compte</Link>
+          <Link href="/marques" className="btn btn-accent mt-5">Créer une marque</Link>
         </div>
       ) : (
         <>
