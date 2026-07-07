@@ -1,6 +1,6 @@
 # Briefs d'exécution pour Claude Code
 
-Un fichier par bloc (`G2.md` → `G12.md`, plus `G5bis.md`), à donner à Claude Code **un par
+Un fichier par bloc (`G2.md` → `G15.md`, plus `G5bis.md`), à donner à Claude Code **un par
 un, dans l'ordre**. Chaque fichier est autonome : il dit quoi lire, quoi construire,
 comment savoir que c'est fini, et où s'arrêter.
 
@@ -22,24 +22,37 @@ plus puissant/coûteux — ça limite la consommation de jetons. Démarre la ses
 modèle Sonnet sélectionné (`/model sonnet` ou équivalent dans ton interface Claude Code)
 avant de coller le brief.
 
-## État au 07/07/2026
+## État au 08/07/2026
 
 - ✅ **G1 → G7** (dont `G5bis`) : terminés et mergés sur `main` (voir `git log`).
-- ⬜ **G8 → G12** — vague « refonte v2 » (juillet 2026), à faire dans cet ordre :
-  - `G8.md` — refonte visuelle (thème de la maquette `anyMaria/CrErMaquetteSiteWeb`,
-    icônes lucide, shell sidebar/topbar/mobile, mode sombre). Aucun changement fonctionnel.
-  - `G9.md` — navigation 8 entrées, fusion Analyse+Bilan+Rituel sous `/bilan`,
-    Paramètres allégés (iCal, horaires, intégrations).
-  - `G10.md` — vues façon Notion sur Idées/Planifier, pipeline idée → publication →
-    Buffer rendu visible, suggestions d'horaires dans le formulaire et le calendrier.
-  - `G11.md` — Mesurer visuel (recharts) + synchro des statistiques via l'API Buffer
-    (`buffer_post_id`, `Post.metrics`), Accueil graphique sans rangée de CTA.
-  - `G12.md` — retours clients dans l'espace de marque + pense-bête d'idées.
-    (Indépendant de G10/G11 : peut être fait juste après G9 si besoin.)
+- ✅ **G9, G10** : faits (commits `240d379`, `5ec7425`). Nota : après leur rédaction,
+  Créer + S'inspirer + Idées ont été **fusionnés en `/conception`** (avec redirections
+  depuis les anciennes routes) — c'est l'état de référence, pas une anomalie.
+- ⬜ **Restants**, à faire dans cet ordre :
+  1. `G13.md` — fiabiliser S'inspirer : ingestion par **webhook Apify** (corrige le
+     bug des recherches bloquées « en cours »), rattrapage + retry, pré-chauffe
+     hebdo par le cron, requêtes et tri de pertinence via Gemini.
+     **Indépendant de tout — à faire en premier (bug réel).**
+  2. `G14.md` — médias Buffer : upload transitoire Vercel Blob (photos, public),
+     vrai carrousel multi-images, purge automatique J+7, bouton « Envoyer la
+     semaine sur Buffer ». Pas de vidéo en v1, jamais de conversion d'assets.
+  3. `G8.md` — refonte visuelle (thème de la maquette `anyMaria/CrErMaquetteSiteWeb`,
+     icônes lucide, shell sidebar/topbar/mobile, mode sombre). Aucun changement
+     fonctionnel. ⚠️ Rédigé avant la fusion `/conception` : appliquer ses consignes
+     aux pages telles qu'elles existent aujourd'hui.
+  4. `G11.md` — Mesurer visuel (recharts) + synchro des statistiques via l'API Buffer
+     (`Post.metrics`), Accueil graphique sans rangée de CTA. ⚠️ Si G14 a déjà créé
+     `buffer_post_id`, sauter son §1.
+  5. `G12.md` — retours clients dans l'espace de marque + pense-bête d'idées.
+  6. `G15.md` — refonte de Conception : 2 onglets sans rechargement, générateur IA
+     en panneau (bouton accent), kanban « Pipeline » par défaut, cartes à 2 badges,
+     légende/planification dans le panneau de détail. **Requiert G8.**
 
-> ⚠️ Avant de lancer G8 : réparer le déploiement Vercel — brief dédié
+> ⚠️ Avant de lancer G13 : réparer le déploiement Vercel — brief dédié
 > `DEPLOIEMENT.md` (Turso, toutes les clés, variables Vercel, Blob, vérification de
-> bout en bout). C'est de la configuration guidée pas à pas, pas du code.
+> bout en bout). C'est de la configuration guidée pas à pas, pas du code. Les
+> webhooks Apify de G13 exigent une URL publique (`APP_URL`) : sans déploiement,
+> seul le fallback polling est testable.
 
 ## Référence
 
