@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-// Proxifie les blobs privés (logos, moodboards) — déjà protégé par le proxy d'auth global.
+// Proxifie les blobs privés (logos, moodboards) — le SDK Blob exige l'accès serveur
+// même en "private", cette route relit le fichier et le ressert au navigateur.
 export async function GET(_req: Request, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const pathname = decodeURIComponent(path.join("/"));
