@@ -67,6 +67,22 @@ export function AccountForm({
           date limite de création.
         </span>
       </label>
+      <label>
+        <span className="field-label">Taux horaire (€, optionnel)</span>
+        <input
+          type="number"
+          name="hourlyRateCents"
+          min={0}
+          step="0.01"
+          inputMode="decimal"
+          defaultValue={account?.hourlyRateCents != null ? (account.hourlyRateCents / 100).toFixed(2) : ""}
+          className="field"
+          placeholder="45"
+        />
+        <span className="mt-1 block text-xs text-ink/50">
+          Valorise le temps passé dans le rapport mensuel.
+        </span>
+      </label>
       <fieldset className="md:col-span-2">
         <span className="field-label">Couleur du compte</span>
         <div className="flex gap-2 pt-1">

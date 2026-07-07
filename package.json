@@ -16,6 +16,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@libsql/client": "^0.17.4",
+    "@react-pdf/renderer": "^4.5.1",
     "@vercel/blob": "^2.5.0",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.10",
