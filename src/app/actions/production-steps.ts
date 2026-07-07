@@ -16,6 +16,6 @@ export async function toggleStep(publicationId: number, key: string) {
     .set({ done, doneAt: done ? new Date() : null })
     .where(eq(productionSteps.id, step.id));
   revalidatePath("/planning");
-  revalidatePath("/statistiques");
+  revalidatePath("/mesurer");
   revalidatePath("/");
 }

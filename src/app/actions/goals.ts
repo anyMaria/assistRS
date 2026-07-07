@@ -14,7 +14,7 @@ const goalSchema = z.object({
 });
 
 function revalidateAll() {
-  revalidatePath("/analyse");
+  revalidatePath("/bilan");
   revalidatePath("/");
 }
 

@@ -4,17 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/", label: "Tableau de bord", short: "Accueil", icon: "◆" },
-  { href: "/creation", label: "Création", short: "Créer", icon: "✎" },
-  { href: "/idees", label: "Idées", short: "Idées", icon: "☁" },
-  { href: "/planning", label: "Planning", short: "Planning", icon: "▦" },
-  { href: "/s-inspirer", label: "S'inspirer", short: "Inspirer", icon: "✺" },
-  { href: "/programmation", label: "Horaires", short: "Horaires", icon: "◔" },
-  { href: "/statistiques", label: "Statistiques", short: "Stats", icon: "▁▃▅" },
-  { href: "/analyse", label: "Analyse", short: "Analyse", icon: "◎" },
-  { href: "/bilan", label: "Bilan", short: "Bilan", icon: "✉" },
-  { href: "/rituel", label: "Rituel mensuel", short: "Rituel", icon: "☾" },
+  { href: "/", label: "Accueil", short: "Accueil", icon: "◆" },
   { href: "/marques", label: "Marques", short: "Marques", icon: "▣" },
+  { href: "/conception", label: "Conception", short: "Conception", icon: "✎" },
+  { href: "/planning", label: "Planifier", short: "Planifier", icon: "▦" },
+  { href: "/mesurer", label: "Mesurer", short: "Mesurer", icon: "▁▃▅" },
+  { href: "/bilan", label: "Bilan", short: "Bilan", icon: "✉" },
   { href: "/parametres", label: "Paramètres", short: "Réglages", icon: "⚙" },
 ];
 
@@ -58,7 +53,7 @@ export function Nav() {
 
       {/* Barre du bas — mobile (5 entrées principales, le reste via Paramètres) */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 border-t-2 border-ink bg-paper">
-        {["/", "/bilan", "/planning", "/statistiques", "/parametres"]
+        {["/", "/conception", "/planning", "/mesurer", "/bilan"]
           .map((href) => items.find((item) => item.href === href)!)
           .map((item) => (
           <Link

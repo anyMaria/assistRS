@@ -48,7 +48,7 @@ function parsePubForm(formData: FormData) {
 
 function revalidateAll() {
   revalidatePath("/planning");
-  revalidatePath("/statistiques");
+  revalidatePath("/mesurer");
   revalidatePath("/");
 }
 
@@ -95,7 +95,7 @@ export async function setPublicationStatus(id: number, status: string) {
   // La publication ne met jamais à jour deux statuts à la main : l'idée liée suit.
   if (status === "publiee" && pub?.ideaId) {
     await db.update(ideas).set({ status: "publiee" }).where(eq(ideas.id, pub.ideaId));
-    revalidatePath("/idees");
+    revalidatePath("/conception");
   }
   revalidateAll();
 }
@@ -159,13 +159,13 @@ export async function addSnapshot(formData: FormData) {
   for (const k of keys) raw[k] = formData.get(k)?.toString() || 0;
   const data = snapshotSchema.parse(raw);
   await db.insert(statSnapshots).values(data);
-  revalidatePath("/statistiques");
-  revalidatePath("/analyse");
+  revalidatePath("/mesurer");
+  revalidatePath("/bilan");
   revalidatePath("/");
 }
 
 export async function deleteSnapshot(id: number) {
   await db.delete(statSnapshots).where(eq(statSnapshots.id, id));
-  revalidatePath("/statistiques");
-  revalidatePath("/analyse");
+  revalidatePath("/mesurer");
+  revalidatePath("/bilan");
 }

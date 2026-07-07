@@ -47,7 +47,7 @@ export async function cycleSlot(
         .where(eq(timeSlots.id, slot.id));
     }
   }
-  revalidatePath("/programmation");
+  revalidatePath("/parametres");
 }
 
 const cellsSchema = z.array(
@@ -92,6 +92,6 @@ export async function applyPersonalizedSlots(platform: string, contentType: stri
         .where(eq(timeSlots.id, existing[0].id));
     }
   }
-  revalidatePath("/programmation");
-  revalidatePath("/analyse");
+  revalidatePath("/parametres");
+  revalidatePath("/bilan");
 }

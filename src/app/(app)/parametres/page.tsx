@@ -1,182 +1,163 @@
 import { headers } from "next/headers";
 import { isNull, desc } from "drizzle-orm";
-import { db, viewConfigs, colorRules, csvMappings, icalTokens } from "@/db";
-import {
-  createView,
-  deleteView,
-  updateViewSettings,
-  createColorRule,
-  deleteColorRule,
-  deleteCsvMapping,
-} from "@/app/actions/settings";
+import { db, icalTokens } from "@/db";
 import { genererTokenIcal, revoquerTokenIcal } from "@/app/actions/ical";
-import { ColorRuleForm } from "@/components/ColorRuleForm";
-import { ViewSettingsForm } from "@/components/ViewSettingsForm";
-import { SubmitButton } from "@/components/SubmitButton";
-import { RULE_FIELDS, operatorLabel } from "@/lib/color-rules";
-import { EXPORT_FORMATS } from "@/lib/formats";
+import { cycleSlot } from "@/app/actions/timeslots";
+import { scheduleProvider } from "@/lib/schedule/provider";
+import { PLATFORMS, CONTENT_TYPES, DAYS_SHORT, platformColor } from "@/lib/constants";
 import { formatDateTime } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
-const TYPE_LABEL: Record<string, string> = {
-  table: "Table",
-  kanban: "Kanban",
-  calendrier: "Calendrier",
-  galerie: "Galerie",
-};
-const ENTITY_LABEL: Record<string, string> = { idees: "Idées", publications: "Publications" };
+const HOURS = Array.from({ length: 16 }, (_, i) => i + 7); // 7 h → 22 h
 
-export default async function ParametresPage() {
-  const views = await db.select().from(viewConfigs);
-  const rules = await db.select().from(colorRules);
-  const mappings = await db.select().from(csvMappings);
+const INTEGRATIONS = [
+  { label: "Gemini (IA)", key: "GEMINI_API_KEY", configured: !!process.env.GEMINI_API_KEY },
+  { label: "Apify (S'inspirer)", key: "APIFY_TOKEN", configured: !!process.env.APIFY_TOKEN },
+  { label: "Resend (e-mails)", key: "RESEND_API_KEY", configured: !!process.env.RESEND_API_KEY },
+  { label: "Vercel Blob (fichiers)", key: "BLOB_READ_WRITE_TOKEN", configured: !!process.env.BLOB_READ_WRITE_TOKEN },
+  { label: "Buffer (publication)", key: "BUFFER_ACCESS_TOKEN", configured: !!process.env.BUFFER_ACCESS_TOKEN },
+] as const;
+
+export default async function ParametresPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ plateforme?: string; type?: string }>;
+}) {
   const [activeToken] = await db.select().from(icalTokens).where(isNull(icalTokens.revokedAt));
   const historique = await db.select().from(icalTokens).orderBy(desc(icalTokens.createdAt)).limit(5);
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("host")}`;
 
+  const params = await searchParams;
+  const platform = params.plateforme ?? "instagram";
+  const contentType = params.type ?? "post";
+  const slots = await scheduleProvider.getSlots(platform, contentType);
+  const byCell = new Map(slots.map((s) => [`${s.dayOfWeek}-${s.hour}`, s]));
+
   return (
     <div>
       <h1 className="font-display text-4xl italic">Paramètres</h1>
-      <p className="mt-1 text-ink/60">Vues, couleurs conditionnelles, mappings CSV, formats d&apos;export et export iCal.</p>
+      <p className="mt-1 text-ink/60">Horaires de publication, intégrations et export iCal.</p>
 
-      {/* ——— Vues ——— */}
-      <section id="vues" className="mt-8 scroll-mt-6">
-        <h2 className="font-display text-2xl">Vues sauvegardées</h2>
-        <div className="mt-3 space-y-2">
-          {views.map((v) => (
-            <details key={v.id} className="card">
-              <summary className="flex cursor-pointer items-center gap-3 p-3">
-                <span className="tag">{ENTITY_LABEL[v.entity] ?? v.entity}</span>
-                <span className="tag">{TYPE_LABEL[v.type] ?? v.type}</span>
-                <span className="font-semibold">{v.name}</span>
-                <span className="ml-auto text-xs text-ink/40">⚙ réglages</span>
-                <form action={deleteView.bind(null, v.id)}>
-                  <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">
-                    Supprimer
-                  </button>
-                </form>
-              </summary>
-              <ViewSettingsForm view={v} action={updateViewSettings.bind(null, v.id)} />
-            </details>
-          ))}
-        </div>
-        <details className="card mt-4">
-          <summary className="cursor-pointer p-4 font-display text-xl">+ Nouvelle vue</summary>
-          <form action={createView} className="grid gap-3 border-t-2 border-ink p-5 md:grid-cols-4">
-            <label>
-              <span className="field-label">Entité</span>
-              <select name="entity" required className="field text-sm">
-                <option value="idees">Idées</option>
-                <option value="publications">Publications</option>
-              </select>
-            </label>
-            <label>
-              <span className="field-label">Type</span>
-              <select name="type" required className="field text-sm">
-                <option value="table">Table</option>
-                <option value="kanban">Kanban</option>
-                <option value="calendrier">Calendrier</option>
-                <option value="galerie">Galerie</option>
-              </select>
-            </label>
-            <label className="md:col-span-2">
-              <span className="field-label">Nom</span>
-              <input name="name" required className="field text-sm" placeholder="Ma vue" />
-            </label>
-            <div className="md:col-span-4">
-              <SubmitButton label="Créer la vue" />
-            </div>
-          </form>
-        </details>
-      </section>
-
-      {/* ——— Couleurs conditionnelles ——— */}
-      <section id="couleurs" className="mt-10 scroll-mt-6">
-        <h2 className="font-display text-2xl">Couleurs conditionnelles</h2>
-        <div className="mt-3 space-y-2">
-          {rules.length === 0 && <p className="text-ink/50 italic">Aucune règle pour l&apos;instant.</p>}
-          {rules.map((r) => (
-            <div key={r.id} className="card flex flex-wrap items-center gap-2 p-3">
-              <span className="h-4 w-4 border border-ink" style={{ backgroundColor: r.color }} />
-              <span className="tag">{ENTITY_LABEL[r.entity] ?? r.entity}</span>
-              <span className="text-sm">
-                {r.field} {operatorLabel(r.operator)} <strong>{r.value}</strong>
-              </span>
-              {r.label && <span className="text-xs text-ink/50">« {r.label} »</span>}
-              <form action={deleteColorRule.bind(null, r.id)} className="ml-auto">
-                <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">
-                  Supprimer
-                </button>
-              </form>
-            </div>
-          ))}
-        </div>
-        <details className="card mt-4">
-          <summary className="cursor-pointer p-4 font-display text-xl">+ Règle pour les idées</summary>
-          <div className="border-t-2 border-ink p-5">
-            <ColorRuleForm entity="idees" fields={RULE_FIELDS.idees} action={createColorRule} />
-          </div>
-        </details>
-        <details className="card mt-3">
-          <summary className="cursor-pointer p-4 font-display text-xl">+ Règle pour les publications</summary>
-          <div className="border-t-2 border-ink p-5">
-            <ColorRuleForm entity="publications" fields={RULE_FIELDS.publications} action={createColorRule} />
-          </div>
-        </details>
-      </section>
-
-      {/* ——— Mappings CSV ——— */}
-      <section id="mappings" className="mt-10 scroll-mt-6">
-        <h2 className="font-display text-2xl">Mappings CSV</h2>
-        <p className="mt-1 text-sm text-ink/50">
-          Réutilisés lors de l&apos;import de statistiques (bloc Mesurer+).
+      {/* ——— Horaires de publication ——— */}
+      <section id="horaires" className="mt-8 scroll-mt-6">
+        <h2 className="font-display text-2xl">Horaires de publication</h2>
+        <p className="mt-1 text-sm text-ink/60">
+          Créneaux recommandés (études Buffer) — clique sur une case pour ajuster :
+          vide → faible → bon → fort → vide. Tes ajustements priment sur les moyennes.
         </p>
-        <div className="mt-3 space-y-2">
-          {mappings.length === 0 && (
-            <p className="text-ink/50 italic">Aucun mapping enregistré pour l&apos;instant.</p>
-          )}
-          {mappings.map((m) => (
-            <div key={m.id} className="card flex items-center gap-3 p-3">
-              <span className="font-semibold">{m.name}</span>
-              <form action={deleteCsvMapping.bind(null, m.id)} className="ml-auto">
-                <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">
-                  Supprimer
-                </button>
-              </form>
-            </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {PLATFORMS.map((p) => (
+            <a
+              key={p.value}
+              href={`/parametres?plateforme=${p.value}&type=${contentType}#horaires`}
+              className="btn"
+              style={
+                platform === p.value
+                  ? { backgroundColor: p.color, color: "white", borderColor: "#1C1917" }
+                  : undefined
+              }
+            >
+              {p.label}
+            </a>
+          ))}
+          <span className="mx-2 hidden text-ink/30 md:inline">|</span>
+          {CONTENT_TYPES.filter(
+            (t) => platform !== "linkedin" || t.value === "post",
+          ).map((t) => (
+            <a
+              key={t.value}
+              href={`/parametres?plateforme=${platform}&type=${t.value}#horaires`}
+              className={`btn ${contentType === t.value ? "bg-ink text-white" : ""}`}
+            >
+              {t.label}
+            </a>
           ))}
         </div>
-      </section>
 
-      {/* ——— Formats d'export ——— */}
-      <section id="formats" className="mt-10 scroll-mt-6">
-        <h2 className="font-display text-2xl">Formats d&apos;export</h2>
-        <p className="mt-1 text-sm text-ink/50">
-          Toujours ré-exporter depuis le fichier source, jamais convertir un export. L&apos;app ne
-          convertit aucun fichier.
-        </p>
-        <div className="card mt-3 overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="card mt-4 overflow-x-auto">
+          <table className="w-full border-collapse text-center text-xs">
             <thead>
-              <tr className="border-b-2 border-ink text-left">
-                <th className="p-3">Contenu</th>
-                <th className="p-3">Format d&apos;export</th>
-                <th className="p-3">Dimensions</th>
+              <tr>
+                <th className="border-b-2 border-r-2 border-ink bg-paper p-2 text-left">Heure</th>
+                {DAYS_SHORT.map((d) => (
+                  <th key={d} className="border-b-2 border-ink bg-paper p-2 font-semibold uppercase tracking-wide">
+                    {d}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {EXPORT_FORMATS.map((f) => (
-                <tr key={f.contenu} className="border-b border-ink/10">
-                  <td className="p-3 font-semibold">{f.contenu}</td>
-                  <td className="p-3">{f.format}</td>
-                  <td className="p-3">{f.dimensions}</td>
+              {HOURS.map((hour) => (
+                <tr key={hour}>
+                  <td className="border-r-2 border-ink/60 border-b border-ink/10 px-2 py-1 text-left font-semibold text-ink/60">
+                    {hour} h
+                  </td>
+                  {DAYS_SHORT.map((_, day) => {
+                    const slot = byCell.get(`${day}-${hour}`);
+                    const strength = slot?.strength ?? 0;
+                    const action = cycleSlot.bind(null, platform, contentType, day, hour);
+                    const bg =
+                      strength === 0
+                        ? "transparent"
+                        : `color-mix(in srgb, ${platformColor(platform)} ${strength * 30}%, white)`;
+                    return (
+                      <td key={day} className="border-b border-ink/10 border-l border-l-ink/10 p-0">
+                        <form action={action}>
+                          <button
+                            type="submit"
+                            title={
+                              strength === 0
+                                ? "Ajouter un créneau"
+                                : `Force ${strength}/3${slot?.source === "personnalise" ? " (personnalisé)" : ""}`
+                            }
+                            className="h-8 w-full min-w-12 cursor-pointer transition hover:outline-2 hover:outline-accent"
+                            style={{ backgroundColor: bg }}
+                          >
+                            {strength === 3 ? "★" : strength === 2 ? "●" : strength === 1 ? "·" : ""}
+                            {slot?.source === "personnalise" && (
+                              <span className="text-[8px] align-super">✎</span>
+                            )}
+                          </button>
+                        </form>
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        <div className="mt-3 flex flex-wrap gap-4 text-xs text-ink/60">
+          <span>· créneau faible</span>
+          <span>● bon créneau</span>
+          <span>★ créneau fort</span>
+          <span>✎ ajusté par toi</span>
+        </div>
+      </section>
+
+      {/* ——— Intégrations ——— */}
+      <section id="integrations" className="mt-10 scroll-mt-6">
+        <h2 className="font-display text-2xl">Intégrations</h2>
+        <p className="mt-1 text-sm text-ink/50">
+          État des clés côté serveur, en lecture seule — les valeurs ne sont jamais affichées ici.
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {INTEGRATIONS.map((i) => (
+            <li key={i.key} className="card flex items-center justify-between gap-2 p-3">
+              <span className="font-semibold">{i.label}</span>
+              <span
+                className={`tag ${i.configured ? "text-ok" : "text-danger"}`}
+                style={{ borderColor: i.configured ? "#3D7C47" : "#7A1512" }}
+              >
+                {i.configured ? "✓ configurée" : "⚠ manquante"}
+              </span>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* ——— Export iCal ——— */}

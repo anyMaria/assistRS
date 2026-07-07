@@ -1,6 +1,7 @@
 import type { Account, Publication } from "@/db/schema";
 import { PLATFORMS, FORMATS, PUBLICATION_STATUSES } from "@/lib/constants";
 import { SubmitButton } from "@/components/SubmitButton";
+import { FormatsReference } from "@/components/FormatsReference";
 
 function toLocalInput(d: Date | null): string {
   if (!d) return "";
@@ -38,7 +39,10 @@ export function PublicationForm({
         </select>
       </label>
       <label>
-        <span className="field-label">Format *</span>
+        <span className="field-label">
+          Format *
+          <FormatsReference />
+        </span>
         <select name="format" required defaultValue={publication?.format} className="field">
           {FORMATS.map((f) => (
             <option key={f.value} value={f.value}>{f.label}</option>

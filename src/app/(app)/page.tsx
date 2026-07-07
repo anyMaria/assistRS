@@ -91,7 +91,7 @@ export default async function DashboardPage() {
             <span className="font-semibold">15 min pour préparer le mois</span> — le rituel mensuel
             propose un calendrier éditorial par marque.
           </p>
-          <Link href="/rituel" className="btn btn-accent">Démarrer le rituel</Link>
+          <Link href="/bilan?onglet=rituel" className="btn btn-accent">Démarrer le rituel</Link>
         </div>
       )}
 
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                         ? `Publiée il y a ${daysSincePublished} j, aucun relevé`
                         : `Dernier relevé il y a ${daysSinceLastSnapshot} j`}
                     </span>
-                    <Link href="/statistiques" className="btn text-xs">＋ Relever</Link>
+                    <Link href="/mesurer" className="btn text-xs">＋ Relever</Link>
                   </li>
                 ))}
               </ul>
@@ -320,10 +320,10 @@ export default async function DashboardPage() {
 
           {/* Raccourcis */}
           <section className="mt-10 flex flex-wrap gap-3">
-            <Link href="/statistiques" className="btn">＋ Saisir des stats</Link>
-            <Link href="/creation" className="btn">✎ Trouver une idée</Link>
+            <Link href="/mesurer" className="btn">＋ Saisir des stats</Link>
+            <Link href="/conception?onglet=creer" className="btn">✎ Trouver une idée</Link>
             <Link href="/planning" className="btn">▦ Planifier</Link>
-            <Link href="/analyse" className="btn btn-accent">◎ Analyser</Link>
+            <Link href="/bilan?onglet=mois" className="btn btn-accent">◎ Analyser</Link>
           </section>
         </>
       )}

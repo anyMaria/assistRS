@@ -13,7 +13,7 @@ const timeEntrySchema = z.object({
 });
 
 function revalidateAll() {
-  revalidatePath("/analyse");
+  revalidatePath("/bilan");
   revalidatePath("/planning");
 }
 

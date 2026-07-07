@@ -121,7 +121,7 @@ publication : pilier, titre, accroche, format.`;
     .update(monthlyRituals)
     .set({ proposal: JSON.stringify(proposal), status: "propose" })
     .where(eq(monthlyRituals.id, id));
-  revalidatePath("/rituel");
+  revalidatePath("/bilan");
   return { ok: true };
 }
 
@@ -162,7 +162,7 @@ export async function validerRituel(
     created++;
   }
   await db.update(monthlyRituals).set({ status: "valide" }).where(eq(monthlyRituals.id, id));
-  revalidatePath("/rituel");
+  revalidatePath("/bilan");
   revalidatePath("/planning");
   revalidatePath("/");
   return { ok: true, created };

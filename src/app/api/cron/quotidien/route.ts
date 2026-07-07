@@ -44,7 +44,7 @@ export async function GET(req: Request) {
     const html = emailShell(
       "C'est l'heure du rituel mensuel",
       `<p>15 minutes pour préparer le calendrier éditorial du mois — ouvre l'app et rends-toi sur
-      <strong>/rituel</strong> pour chaque marque à préparer.</p>`,
+      <strong>/bilan?onglet=rituel</strong> pour chaque marque à préparer.</p>`,
     );
     const sent = await sendEmail("15 min pour préparer ton mois — Assist RS", html, "rituel-invitation");
     result.invitationRituelEnvoyee = sent.ok;
