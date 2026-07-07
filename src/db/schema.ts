@@ -66,6 +66,7 @@ export const publications = sqliteTable("publications", {
   publishedAt: integer("published_at", { mode: "timestamp" }),
   url: text("url").default(""),
   visualUrl: text("visual_url").default(""), // aperçu du visuel final (URL directe pour l'instant)
+  caption: text("caption").default(""), // légende appliquée (générée par IA ou saisie à la main)
   ideaId: integer("idea_id").references(() => ideas.id, {
     onDelete: "set null",
   }),
@@ -215,6 +216,24 @@ export const brandMemoryRules = sqliteTable("brand_memory_rules", {
     .default(sql`(unixepoch())`),
 });
 
+// Génération IA (légende, idées, calendrier, analyse, amélioration) — CONCEPTION.md §10
+export const generations = sqliteTable("generations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  publicationId: integer("publication_id").references(() => publications.id, { onDelete: "set null" }),
+  ideaId: integer("idea_id").references(() => ideas.id, { onDelete: "set null" }),
+  kind: text("kind").notNull(), // legende | idees | calendrier | analyse | amelioration
+  promptSummary: text("prompt_summary").default(""),
+  output: text("output").notNull().default(""),
+  editedOutput: text("edited_output").default(""),
+  appliedAt: integer("applied_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
@@ -229,3 +248,4 @@ export type BrandIdentity = typeof brandIdentity.$inferSelect;
 export type BrandAsset = typeof brandAssets.$inferSelect;
 export type BrandEditorial = typeof brandEditorial.$inferSelect;
 export type BrandMemoryRule = typeof brandMemoryRules.$inferSelect;
+export type Generation = typeof generations.$inferSelect;
