@@ -8,6 +8,7 @@ export function TableView({
   planningLabel,
   planning,
   actions,
+  renderExtra,
 }: {
   cards: DataCard[];
   columnLabel: string;
@@ -15,6 +16,8 @@ export function TableView({
   planningLabel?: string;
   planning?: (card: DataCard) => React.ReactNode;
   actions?: (card: DataCard) => React.ReactNode;
+  /** Contenu additionnel rendu dans la fenêtre de détail (ex. éditeur de légende, recall). */
+  renderExtra?: (card: DataCard) => React.ReactNode;
 }) {
   if (cards.length === 0) {
     return <p className="mt-6 text-ink/50 italic">Rien à afficher ici pour l&apos;instant.</p>;
@@ -62,6 +65,7 @@ export function TableView({
                       <pre className="mt-1 whitespace-pre-wrap font-sans text-sm text-ink/70">{card.body}</pre>
                     </div>
                   )}
+                  {renderExtra && renderExtra(card)}
                 </CardModal>
               </td>
               <td className="p-3">

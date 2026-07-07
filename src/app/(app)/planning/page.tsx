@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
-import { db, publications, accounts, viewConfigs, colorRules, statSnapshots } from "@/db";
+import { desc, eq, inArray } from "drizzle-orm";
+import { db, publications, accounts, viewConfigs, colorRules, statSnapshots, ideas } from "@/db";
 import {
   createPublication,
   deletePublication,
   setPublicationStatus,
   duplicatePublication,
+  declinerPublication,
 } from "@/app/actions/publications";
 import { ViewTabs } from "@/components/dataviews/ViewTabs";
 import { TableView } from "@/components/dataviews/TableView";
@@ -13,6 +14,10 @@ import { KanbanView } from "@/components/dataviews/KanbanView";
 import { CalendarView, type CalendarDeadline } from "@/components/dataviews/CalendarView";
 import { GalleryView } from "@/components/dataviews/GalleryView";
 import { PublicationForm } from "@/components/PublicationForm";
+import { LegendeEditor } from "@/components/LegendeEditor";
+import { DeclinerForm } from "@/components/DeclinerForm";
+import { RecallCard } from "@/components/RecallCard";
+import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import type { RuleRow } from "@/lib/color-rules";
 import { parseViewSettings, applyViewSettings } from "@/lib/view-config";
@@ -123,6 +128,22 @@ export default async function PlanningPage({
 
   const month = mois ?? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
 
+  // Recall (§4.3) — calculé côté serveur, aucun appel réseau.
+  const linkedIdeaIds = list.map((p) => p.ideaId).filter((id): id is number => id != null);
+  const linkedIdeas = linkedIdeaIds.length
+    ? await db.select().from(ideas).where(inArray(ideas.id, linkedIdeaIds))
+    : [];
+  const ideaById = new Map(linkedIdeas.map((i) => [i.id, i]));
+  const recallByPubId = new Map(
+    await Promise.all(
+      list.map(async (pub) => {
+        const linkedIdea = pub.ideaId ? ideaById.get(pub.ideaId) : undefined;
+        const match = await findRecall(pub.accountId, [linkedIdea?.theme, linkedIdea?.pillar, pub.title], pub.id);
+        return [pub.id, match] as const;
+      }),
+    ),
+  );
+
   return (
     <div>
       <h1 className="font-display text-4xl italic">Planning</h1>
@@ -151,6 +172,31 @@ export default async function PlanningPage({
                 <TableView
                   cards={cards}
                   columnLabel="Statut"
+                  renderExtra={(card) => {
+                    const pub = list.find((p) => p.id === card.id)!;
+                    const recall = recallByPubId.get(pub.id);
+                    return (
+                      <>
+                        {recall && <RecallCard match={recall} />}
+                        <LegendeEditor
+                          kind="publication"
+                          id={pub.id}
+                          accountId={pub.accountId}
+                          platform={pub.platform}
+                          format={pub.format}
+                          brief={pub.title ?? ""}
+                          existingText={pub.caption ?? ""}
+                          platformLabel={platformLabel(pub.platform)}
+                        />
+                        <div className="mt-4 border-t-2 border-ink pt-4">
+                          <p className="field-label">Décliner ce contenu</p>
+                          <div className="mt-2">
+                            <DeclinerForm currentPlatform={pub.platform} action={declinerPublication.bind(null, pub.id)} />
+                          </div>
+                        </div>
+                      </>
+                    );
+                  }}
                   actions={(card) => {
                     const pub = list.find((p) => p.id === card.id)!;
                     const bindStatus = setPublicationStatus.bind(

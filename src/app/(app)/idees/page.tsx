@@ -8,6 +8,9 @@ import { KanbanView } from "@/components/dataviews/KanbanView";
 import { CalendarView } from "@/components/dataviews/CalendarView";
 import { IdeaForm } from "@/components/IdeaForm";
 import { PlanifierIdeeForm } from "@/components/PlanifierIdeeForm";
+import { LegendeEditor } from "@/components/LegendeEditor";
+import { RecallCard } from "@/components/RecallCard";
+import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import { parseViewSettings, applyViewSettings } from "@/lib/view-config";
 import type { DataCard } from "@/components/dataviews/types";
@@ -113,6 +116,13 @@ export default async function IdeesPage({
 
   const month = mois ?? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
 
+  // Recall (§4.3) — calculé côté serveur, aucun appel réseau.
+  const recallByIdeaId = new Map(
+    await Promise.all(
+      list.map(async (idea) => [idea.id, await findRecall(idea.accountId, [idea.theme, idea.pillar])] as const),
+    ),
+  );
+
   return (
     <div>
       <h1 className="font-display text-4xl italic">Idées</h1>
@@ -149,6 +159,25 @@ export default async function IdeesPage({
                     const bindPlanifier = planifierIdee.bind(null, idea.id);
                     return (
                       <PlanifierIdeeForm defaultPlatform={idea.platform ?? undefined} action={bindPlanifier} />
+                    );
+                  }}
+                  renderExtra={(card) => {
+                    const idea = list.find((i) => i.id === card.id)!;
+                    const recall = recallByIdeaId.get(idea.id);
+                    return (
+                      <>
+                        {recall && <RecallCard match={recall} />}
+                        <LegendeEditor
+                          kind="idee"
+                          id={idea.id}
+                          accountId={idea.accountId}
+                          platform={idea.platform || "instagram"}
+                          format={idea.format ?? "post"}
+                          brief={`${idea.title}${idea.content ? `\n${idea.content}` : ""}`}
+                          existingText=""
+                          platformLabel={platformLabel(idea.platform || "instagram")}
+                        />
+                      </>
                     );
                   }}
                   actions={(card) => {
