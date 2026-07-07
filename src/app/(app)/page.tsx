@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { desc, inArray } from "drizzle-orm";
-import { db, accounts, publications, statSnapshots, productionSteps } from "@/db";
+import { db, accounts, publications, statSnapshots, productionSteps, goals } from "@/db";
 import { aggregate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
 import {
   computeVisualDeadline,
@@ -8,7 +8,8 @@ import {
   deadlineMessage,
 } from "@/lib/deadline";
 import { computeToRelaunch, computeToFollowUp } from "@/lib/attention";
-import { platformLabel, platformColor, formatDate } from "@/lib/constants";
+import { computeGoalProgress, formatGoalValue } from "@/lib/goals";
+import { platformLabel, platformColor, formatDate, goalMetricLabel } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,16 @@ export default async function DashboardPage() {
   }
   const toRelaunch = computeToRelaunch(pubs, stepsByPub, accountById);
   const toFollowUp = computeToFollowUp(pubs, latest, accountById);
+
+  const now = new Date();
+  const allGoals = await db.select().from(goals);
+  const activeGoalsByAccount = new Map<number, typeof allGoals>();
+  for (const g of allGoals) {
+    if (g.periodStart > now || g.periodEnd < now) continue;
+    const list = activeGoalsByAccount.get(g.accountId) ?? [];
+    list.push(g);
+    activeGoalsByAccount.set(g.accountId, list);
+  }
 
   // Deadlines visuel des publications planifiées à venir
   const upcoming = pubs
@@ -209,6 +220,25 @@ export default async function DashboardPage() {
                     <p className="mt-2 text-xs text-ink/40">
                       {agg.count} publication{agg.count > 1 ? "s" : ""} avec stats
                     </p>
+                    {(activeGoalsByAccount.get(account.id) ?? []).map((g) => {
+                      const { current, ratio } = computeGoalProgress(g, pubs, snaps);
+                      return (
+                        <div key={g.id} className="mt-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold">{goalMetricLabel(g.metric)}</span>
+                            <span className="text-ink/50">
+                              {formatGoalValue(g.metric, current)} / {formatGoalValue(g.metric, g.target)}
+                            </span>
+                          </div>
+                          <div className="mt-1 h-2 w-full border border-ink bg-white">
+                            <div
+                              className="h-full bg-accent transition-[width] duration-500"
+                              style={{ width: `${Math.round(ratio * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}

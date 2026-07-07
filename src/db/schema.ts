@@ -14,6 +14,8 @@ export const accounts = sqliteTable("accounts", {
   // Délai approximatif (en jours) de validation par le client
   validationDelayDays: integer("validation_delay_days").notNull().default(3),
   color: text("color").notNull().default("#DE2F2C"),
+  // Taux horaire optionnel (en centimes) — valorise le temps passé dans le rapport mensuel.
+  hourlyRateCents: integer("hourly_rate_cents"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -248,6 +250,51 @@ export const monthlyRituals = sqliteTable("monthly_rituals", {
     .default(sql`(unixepoch())`),
 });
 
+// Objectif chiffré par marque, sur une période donnée.
+export const goals = sqliteTable("goals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  metric: text("metric").notNull(), // abonnes | engagement | conversions
+  // abonnes/conversions : nombre entier. engagement : points de base (450 = 4,50 %).
+  target: integer("target").notNull(),
+  periodStart: integer("period_start", { mode: "timestamp" }).notNull(),
+  periodEnd: integer("period_end", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Saisie de temps passé — base de facturation, valorisée si taux horaire renseigné.
+export const timeEntries = sqliteTable("time_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  publicationId: integer("publication_id").references(() => publications.id, {
+    onDelete: "set null",
+  }),
+  minutes: integer("minutes").notNull(),
+  note: text("note").default(""),
+  date: integer("date", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Rapport PDF mensuel généré pour une marque.
+export const reports = sqliteTable("reports", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  month: text("month").notNull(), // "YYYY-MM"
+  blobUrl: text("blob_url"), // pathname du blob privé, null si Blob non configuré à la génération
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
@@ -265,3 +312,6 @@ export type ProductionStep = typeof productionSteps.$inferSelect;
 export type Recurrence = typeof recurrences.$inferSelect;
 export type IcalToken = typeof icalTokens.$inferSelect;
 export type MonthlyRitual = typeof monthlyRituals.$inferSelect;
+export type Goal = typeof goals.$inferSelect;
+export type TimeEntry = typeof timeEntries.$inferSelect;
+export type Report = typeof reports.$inferSelect;
