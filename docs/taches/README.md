@@ -1,6 +1,6 @@
 # Briefs d'exécution pour Claude Code
 
-Un fichier par bloc (`G2.md` → `G7.md`, plus `G5bis.md`), à donner à Claude Code **un par
+Un fichier par bloc (`G2.md` → `G12.md`, plus `G5bis.md`), à donner à Claude Code **un par
 un, dans l'ordre**. Chaque fichier est autonome : il dit quoi lire, quoi construire,
 comment savoir que c'est fini, et où s'arrêter.
 
@@ -24,10 +24,22 @@ avant de coller le brief.
 
 ## État au 07/07/2026
 
-- ✅ **G1** — Vues Notion + espaces de marque (+ compléments post-G1 du §13 bis de
-  `CONCEPTION.md`) : terminé.
-- ⬜ **G2 → G7** : à faire, dans cet ordre. `G5bis.md` (intégration Meta) vient après
-  `G5.md`, avant `G6.md`.
+- ✅ **G1 → G7** (dont `G5bis`) : terminés et mergés sur `main` (voir `git log`).
+- ⬜ **G8 → G12** — vague « refonte v2 » (juillet 2026), à faire dans cet ordre :
+  - `G8.md` — refonte visuelle (thème de la maquette `anyMaria/CrErMaquetteSiteWeb`,
+    icônes lucide, shell sidebar/topbar/mobile, mode sombre). Aucun changement fonctionnel.
+  - `G9.md` — navigation 8 entrées, fusion Analyse+Bilan+Rituel sous `/bilan`,
+    Paramètres allégés (iCal, horaires, intégrations).
+  - `G10.md` — vues façon Notion sur Idées/Planifier, pipeline idée → publication →
+    Buffer rendu visible, suggestions d'horaires dans le formulaire et le calendrier.
+  - `G11.md` — Mesurer visuel (recharts) + synchro des statistiques via l'API Buffer
+    (`buffer_post_id`, `Post.metrics`), Accueil graphique sans rangée de CTA.
+  - `G12.md` — retours clients dans l'espace de marque + pense-bête d'idées.
+    (Indépendant de G10/G11 : peut être fait juste après G9 si besoin.)
+
+> ⚠️ Avant de lancer G8 : réparer le déploiement Vercel (base Turso + variables d'env +
+> `db:push`/`db:seed`) — voir le README racine §Déploiement. Ce n'est pas un bloc de
+> code, c'est de la configuration à faire par Ana, pas par Claude Code.
 
 ## Référence
 
