@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import {
   db,
   accounts,
@@ -27,7 +27,8 @@ import { SearchForm } from "@/components/inspiration/SearchForm";
 import { BudgetBar } from "@/components/inspiration/BudgetBar";
 import { PollStatus } from "@/components/inspiration/PollStatus";
 import { RelancerButton } from "@/components/inspiration/RelancerButton";
-import { ItemCard } from "@/components/inspiration/ItemCard";
+import { ResultsGrid } from "@/components/inspiration/ResultsGrid";
+import { rattraperRecherchesBloquees } from "@/lib/inspiration-ingest";
 import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import { parseViewSettings, applyViewSettings } from "@/lib/view-config";
@@ -113,6 +114,10 @@ async function CreerTab() {
 }
 
 async function InspirerTab({ recherche }: { recherche?: string }) {
+  // Rattrapage des recherches "en_cours" bloquées (> 10 min, page fermée avant la fin) —
+  // tâche de fond non bloquante, ne retarde pas le rendu de la page (G13).
+  void rattraperRecherchesBloquees().catch((e) => console.error("[apify] rattrapage échoué", e));
+
   const ids = (recherche ?? "")
     .split(",")
     .map(Number)
@@ -123,6 +128,25 @@ async function InspirerTab({ recherche }: { recherche?: string }) {
     db.select().from(moodboards),
     monthlySpendCents("apify"),
   ]);
+
+  const accountById = new Map(allAccounts.map((a) => [a.id, a]));
+  const since14j = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const suggestions = await db
+    .select()
+    .from(inspirationSearches)
+    .where(
+      and(
+        eq(inspirationSearches.origin, "cron"),
+        eq(inspirationSearches.status, "termine"),
+        gte(inspirationSearches.createdAt, since14j),
+      ),
+    )
+    .orderBy(desc(inspirationSearches.createdAt));
+  const suggestionCounts = suggestions.length
+    ? await db.select().from(inspirationItems).where(inArray(inspirationItems.searchId, suggestions.map((s) => s.id)))
+    : [];
+  const countBySearch = new Map<number, number>();
+  for (const it of suggestionCounts) countBySearch.set(it.searchId, (countBySearch.get(it.searchId) ?? 0) + 1);
 
   const searches = ids.length
     ? await db.select().from(inspirationSearches).where(inArray(inspirationSearches.id, ids)).orderBy(desc(inspirationSearches.createdAt))
@@ -154,6 +178,29 @@ async function InspirerTab({ recherche }: { recherche?: string }) {
         </Link>
       </div>
 
+      {suggestions.length > 0 && (
+        <div className="mt-6">
+          <p className="field-label">Suggestions de la semaine</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {suggestions.map((s) => {
+              const account = s.accountId ? accountById.get(s.accountId) : undefined;
+              const n = countBySearch.get(s.id) ?? 0;
+              const ids = new Set((recherche ?? "").split(",").filter(Boolean));
+              ids.add(String(s.id));
+              return (
+                <Link
+                  key={s.id}
+                  href={`/conception?onglet=inspirer&recherche=${Array.from(ids).join(",")}`}
+                  className="tag hover:bg-ink hover:text-white"
+                >
+                  {s.theme} · {account?.name ?? "toutes marques"} · {n} visuels
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {searches.length === 0 ? (
         <p className="card mt-8 p-6 text-ink/60">
           Lance ta première recherche : choisis un thème et au moins une source ci-dessus.
@@ -175,6 +222,7 @@ async function InspirerTab({ recherche }: { recherche?: string }) {
                     <span className="text-sm text-ink/50">
                       {searchItems.length} résultats · {formatDateTime(search.createdAt)}
                       {search.costCents === 0 ? " (cache gratuit)" : ` · ${(search.costCents / 100).toFixed(2)} $`}
+                      {search.queryUsed && ` · recherché : « ${search.queryUsed} »`}
                     </span>
                   )}
                   <div className="ml-auto">
@@ -197,11 +245,7 @@ async function InspirerTab({ recherche }: { recherche?: string }) {
                 )}
 
                 {search.status === "termine" && searchItems.length > 0 && (
-                  <div className="columns-1 gap-4 p-4 sm:columns-2 lg:columns-3">
-                    {searchItems.map((item) => (
-                      <ItemCard key={item.id} item={item} moodboards={boardsForSearch} accountId={search.accountId} theme={search.theme} />
-                    ))}
-                  </div>
+                  <ResultsGrid items={searchItems} moodboards={boardsForSearch} accountId={search.accountId} theme={search.theme} />
                 )}
               </section>
             );

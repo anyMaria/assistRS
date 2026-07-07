@@ -14,6 +14,7 @@ import {
   BUDGET_MONTHLY_CAP_CENTS,
   type ApifySource,
 } from "@/lib/apify";
+import { optimizeQuery } from "@/lib/inspiration-query";
 import { monthlySpendCents } from "@/lib/api-usage";
 
 const searchSchema = z.object({
@@ -82,7 +83,8 @@ export async function lancerRecherche(formData: FormData): Promise<LancerRecherc
     const meta = ACTORS[source];
     const maxItems = Math.min(meta.maxItems, Math.max(meta.minItems, meta.maxItems));
     try {
-      const { runId, datasetId } = await startApifyRun(source, theme, maxItems);
+      const optimizedQuery = await optimizeQuery(theme, source, accountId ?? null).catch(() => normalizeQuery(theme));
+      const { runId, datasetId, queryUsed } = await startApifyRun(source, theme, maxItems, optimizedQuery);
       const [row] = await db
         .insert(inspirationSearches)
         .values({
@@ -96,6 +98,7 @@ export async function lancerRecherche(formData: FormData): Promise<LancerRecherc
           status: "en_cours",
           apifyRunId: runId,
           apifyDatasetId: datasetId,
+          queryUsed,
         })
         .returning();
       searchIds.push(row.id);
@@ -139,7 +142,10 @@ export async function relancerRecherche(searchId: number, confirmer = false): Pr
 
   try {
     const source = existing.source as ApifySource;
-    const { runId, datasetId } = await startApifyRun(source, existing.theme, existing.maxItems);
+    const optimizedQuery = await optimizeQuery(existing.theme, source, existing.accountId).catch(() =>
+      normalizeQuery(existing.theme),
+    );
+    const { runId, datasetId, queryUsed } = await startApifyRun(source, existing.theme, existing.maxItems, optimizedQuery);
     const [row] = await db
       .insert(inspirationSearches)
       .values({
@@ -153,6 +159,7 @@ export async function relancerRecherche(searchId: number, confirmer = false): Pr
         status: "en_cours",
         apifyRunId: runId,
         apifyDatasetId: datasetId,
+        queryUsed,
       })
       .returning();
     revalidatePath("/conception");

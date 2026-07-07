@@ -41,6 +41,7 @@ export function ItemCard({
       />
       <div className="space-y-2 p-3 text-sm">
         <p className="font-semibold">{item.author || "Auteur inconnu"}</p>
+        {item.title && <p className="text-ink/80">{item.title}</p>}
         <p className="text-ink/60">{signalText(item.source as ApifySource, metrics)}</p>
         <div className="flex flex-wrap items-center gap-2">
           {item.originalUrl && (

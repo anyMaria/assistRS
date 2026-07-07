@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { generateOccurrences } from "@/lib/recurrences";
 import { buildBilanData, renderBilanHtml } from "@/lib/bilan";
 import { sendEmail, emailShell } from "@/lib/email";
+import { rattraperRecherchesBloquees } from "@/lib/inspiration-ingest";
+import { preChaufferSuggestions } from "@/lib/inspiration-preheat";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,22 @@ export async function GET(req: Request) {
   } catch (e) {
     console.error("[cron] génération des récurrences échouée", e);
     result.occurrencesCreees = 0;
+  }
+
+  try {
+    result.recherchesRattrapees = await rattraperRecherchesBloquees();
+  } catch (e) {
+    console.error("[cron] rattrapage des recherches échoué", e);
+    result.recherchesRattrapees = 0;
+  }
+
+  if (isMonday) {
+    try {
+      result.suggestionsLancees = await preChaufferSuggestions();
+    } catch (e) {
+      console.error("[cron] pré-chauffe des suggestions échouée", e);
+      result.suggestionsLancees = 0;
+    }
   }
 
   if (isMonday) {

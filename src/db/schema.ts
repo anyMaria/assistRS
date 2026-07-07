@@ -72,6 +72,23 @@ export const publications = sqliteTable("publications", {
   ideaId: integer("idea_id").references(() => ideas.id, {
     onDelete: "set null",
   }),
+  bufferPostId: text("buffer_post_id"), // id du post Buffer une fois envoyé (G14/G11)
+});
+
+// Visuel transitoire uploadé pour une publication — hébergement Blob public, purgé J+7
+// après envoi Buffer (G14). Buffer copie les médias chez lui, ces blobs ne servent qu'à ça.
+export const publicationAssets = sqliteTable("publication_assets", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  publicationId: integer("publication_id")
+    .notNull()
+    .references(() => publications.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  pathname: text("pathname").notNull(),
+  position: integer("position").notNull().default(0),
+  sizeBytes: integer("size_bytes").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
 
 // Relevé de statistiques — plusieurs relevés possibles par publication
@@ -233,6 +250,9 @@ export const inspirationSearches = sqliteTable("inspiration_searches", {
   apifyDatasetId: text("apify_dataset_id"),
   costCents: integer("cost_cents").notNull().default(0),
   errorMessage: text("error_message"),
+  retryCount: integer("retry_count").notNull().default(0),
+  origin: text("origin").notNull().default("manuelle"), // manuelle | cron
+  queryUsed: text("query_used"), // requête réellement envoyée à l'actor (optimisée par Gemini ou fallback)
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -248,9 +268,11 @@ export const inspirationItems = sqliteTable("inspiration_items", {
   imageUrl: text("image_url").notNull(),
   blobThumbUrl: text("blob_thumb_url"), // copie pérenne (les URLs scrapées expirent)
   author: text("author").default(""),
+  title: text("title").notNull().default(""),
   postedAt: integer("posted_at", { mode: "timestamp" }),
   metrics: text("metrics").notNull().default("{}"), // JSON, signaux propres à la source
   originalUrl: text("original_url").default(""),
+  relevant: integer("relevant", { mode: "boolean" }).notNull().default(true), // tri de pertinence Gemini
   pinnedBoardId: integer("pinned_board_id").references(() => moodboards.id, {
     onDelete: "set null",
   }),
@@ -404,6 +426,7 @@ export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
 export type Publication = typeof publications.$inferSelect;
+export type PublicationAsset = typeof publicationAssets.$inferSelect;
 export type StatSnapshot = typeof statSnapshots.$inferSelect;
 export type TimeSlot = typeof timeSlots.$inferSelect;
 export type CsvMapping = typeof csvMappings.$inferSelect;

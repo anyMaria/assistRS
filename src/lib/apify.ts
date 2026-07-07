@@ -86,24 +86,55 @@ function buildActorInput(source: ApifySource, query: string, maxItems: number): 
   }
 }
 
+/** URL publique de l'app pour les webhooks Apify — absente en dev, où le polling client suffit. */
+function getAppUrl(): string | null {
+  if (process.env.APP_URL) return process.env.APP_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  return null;
+}
+
+/** Webhook ad hoc attaché au démarrage du run — ingestion côté serveur même page fermée (G13). */
+function buildWebhooksParam(): string | null {
+  const appUrl = getAppUrl();
+  if (!appUrl || !process.env.CRON_SECRET) return null;
+  const webhooks = [
+    {
+      eventTypes: ["ACTOR.RUN.SUCCEEDED", "ACTOR.RUN.FAILED", "ACTOR.RUN.TIMED_OUT", "ACTOR.RUN.ABORTED"],
+      requestUrl: `${appUrl}/api/inspiration/webhook?secret=${process.env.CRON_SECRET}`,
+    },
+  ];
+  return Buffer.from(JSON.stringify(webhooks)).toString("base64");
+}
+
 /** Démarre un run asynchrone (un run Apify dure ~100 s, trop long pour une fonction Vercel). */
 export async function startApifyRun(
   source: ApifySource,
   theme: string,
   maxItems: number,
-): Promise<{ runId: string; datasetId: string }> {
+  queryOverride?: string,
+): Promise<{ runId: string; datasetId: string; queryUsed: string }> {
   if (!process.env.APIFY_TOKEN) throw new Error("APIFY_TOKEN manquant");
   const { id } = ACTORS[source];
-  const query = normalizeQuery(theme);
+  const query = queryOverride ?? normalizeQuery(theme);
   const input = buildActorInput(source, query, maxItems);
-  const res = await fetch(`${APIFY_BASE}/acts/${id}/runs?token=${process.env.APIFY_TOKEN}`, {
+
+  let url = `${APIFY_BASE}/acts/${id}/runs?token=${process.env.APIFY_TOKEN}`;
+  try {
+    const webhooks = buildWebhooksParam();
+    if (webhooks) url += `&webhooks=${webhooks}`;
+  } catch (e) {
+    console.error("[apify] attachement webhook échoué", e);
+    // Ne doit jamais empêcher le démarrage du run.
+  }
+
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error(`Apify ${source} : démarrage impossible (HTTP ${res.status})`);
   const json = await res.json();
-  return { runId: json.data.id as string, datasetId: json.data.defaultDatasetId as string };
+  return { runId: json.data.id as string, datasetId: json.data.defaultDatasetId as string, queryUsed: query };
 }
 
 export async function getApifyRunStatus(runId: string): Promise<string> {
@@ -127,10 +158,17 @@ export async function getApifyDatasetItems(
 export type NormalizedItem = {
   imageUrl: string;
   author: string;
+  title: string;
   postedAt: Date | null;
   metrics: Record<string, unknown>;
   originalUrl: string;
 };
+
+/** Texte de post tronqué à 200 caractères (LinkedIn/Facebook) — pas de titre à proprement parler. */
+function truncateText(v: unknown): string {
+  const s = typeof v === "string" ? v : "";
+  return s.length > 200 ? s.slice(0, 200) + "…" : s;
+}
 
 /** Normalise un item brut Apify vers le format commun `inspiration_items`. */
 export function normalizeItem(source: ApifySource, raw: Record<string, unknown>): NormalizedItem {
@@ -143,6 +181,7 @@ export function normalizeItem(source: ApifySource, raw: Record<string, unknown>)
       return {
         imageUrl: str(raw.coverURL) || str(raw.thumbnailURL),
         author: str(owner.fullName) || str(owner.username),
+        title: str(raw.name),
         postedAt: null,
         metrics: { pinCount: num(raw.pinCount), followers: num(owner.followers), type: str(raw.type) || "pin" },
         originalUrl: str(raw.slashURL),
@@ -153,6 +192,7 @@ export function normalizeItem(source: ApifySource, raw: Record<string, unknown>)
       return {
         imageUrl: str(raw.displayUrl) || str(raw.imageUrl),
         author: str(raw.ownerUsername),
+        title: truncateText(raw.caption),
         postedAt: timestamp ? new Date(timestamp as string | number) : null,
         metrics: { likes: num(raw.likesCount), comments: num(raw.commentsCount) },
         originalUrl: str(raw.url),
@@ -163,6 +203,7 @@ export function normalizeItem(source: ApifySource, raw: Record<string, unknown>)
       return {
         imageUrl: str(raw.imageUrl) || str((raw.image as Record<string, unknown> | undefined)?.url),
         author: str(author.name) || str(raw.authorName),
+        title: truncateText(raw.text ?? raw.content),
         postedAt: raw.postedAt ? new Date(raw.postedAt as string) : null,
         metrics: { reactions: num(raw.numReactions ?? raw.reactionsCount) },
         originalUrl: str(raw.url ?? raw.postUrl),
@@ -172,6 +213,7 @@ export function normalizeItem(source: ApifySource, raw: Record<string, unknown>)
       return {
         imageUrl: str(raw.imageUrl) || str((raw.media as Record<string, unknown>[] | undefined)?.[0]),
         author: str(raw.pageName) || str(raw.user),
+        title: truncateText(raw.text ?? raw.message),
         postedAt: raw.time ? new Date(raw.time as string) : null,
         metrics: { likes: num(raw.likes), comments: num(raw.comments), shares: num(raw.shares) },
         originalUrl: str(raw.url ?? raw.postUrl),
@@ -185,6 +227,7 @@ export function normalizeItem(source: ApifySource, raw: Record<string, unknown>)
       return {
         imageUrl: str(raw.imageUrl) || str(raw.snapshotUrl),
         author: str(raw.pageName),
+        title: truncateText(raw.adText ?? raw.text),
         postedAt: start ? new Date(start as string) : null,
         metrics: { daysRunning },
         originalUrl: str(raw.adUrl ?? raw.url),
