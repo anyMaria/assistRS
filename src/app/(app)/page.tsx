@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { desc } from "drizzle-orm";
-import { db, accounts, publications, statSnapshots } from "@/db";
+import { db, accounts, publications, statSnapshots, ideas } from "@/db";
 import { aggregate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
 import {
   computeVisualDeadline,
@@ -9,15 +9,30 @@ import {
 } from "@/lib/deadline";
 import { platformLabel, platformColor, formatDate, formatDateTime, publicationStatusLabel } from "@/lib/constants";
 import { CardModal, DetailFields } from "@/components/dataviews/CardModal";
+import { GlobalStats } from "@/components/dashboard/GlobalStats";
+import { ChatbotWidget } from "@/components/dashboard/ChatbotWidget";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const allAccounts = await db.select().from(accounts);
   const pubs = await db.select().from(publications);
+  const allIdeas = await db.select().from(ideas);
   const snaps = await db.select().from(statSnapshots).orderBy(desc(statSnapshots.recordedAt));
   const latest = latestSnapshots(snaps);
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
+
+  const inSevenDays = new Date();
+  inSevenDays.setDate(inSevenDays.getDate() + 7);
+  const globalAgg = aggregate([...latest.values()]);
+  const globalStats = {
+    activeAccounts: allAccounts.length,
+    ideasWaiting: allIdeas.filter((i) => i.status === "idee").length,
+    upcomingWeek: pubs.filter((p) => p.status === "planifiee" && p.plannedAt && p.plannedAt <= inSevenDays).length,
+    publishedTotal: pubs.filter((p) => p.status === "publiee").length,
+    globalEngagementRate: globalAgg.engagementRate,
+    globalReach: globalAgg.reach,
+  };
 
   // Deadlines visuel des publications planifiées à venir
   const upcoming = pubs
@@ -45,6 +60,15 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <GlobalStats data={globalStats} />
+            </div>
+            <div className="lg:col-span-1 lg:row-span-1">
+              <ChatbotWidget />
+            </div>
+          </div>
+
           {/* À produire — rétro-planning validation client */}
           <section className="mt-8">
             <h2 className="font-display text-2xl">Visuels à produire</h2>
