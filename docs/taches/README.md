@@ -37,9 +37,9 @@ avant de coller le brief.
   - `G12.md` — retours clients dans l'espace de marque + pense-bête d'idées.
     (Indépendant de G10/G11 : peut être fait juste après G9 si besoin.)
 
-> ⚠️ Avant de lancer G8 : réparer le déploiement Vercel (base Turso + variables d'env +
-> `db:push`/`db:seed`) — voir le README racine §Déploiement. Ce n'est pas un bloc de
-> code, c'est de la configuration à faire par Ana, pas par Claude Code.
+> ⚠️ Avant de lancer G8 : réparer le déploiement Vercel — brief dédié
+> `DEPLOIEMENT.md` (Turso, toutes les clés, variables Vercel, Blob, vérification de
+> bout en bout). C'est de la configuration guidée pas à pas, pas du code.
 
 ## Référence
 
