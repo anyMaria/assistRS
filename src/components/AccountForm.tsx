@@ -1,5 +1,6 @@
 import type { Account } from "@/db/schema";
 import { PLATFORMS } from "@/lib/constants";
+import { SubmitButton } from "@/components/SubmitButton";
 
 const ACCOUNT_COLORS = [
   "#DE2F2C", "#B13589", "#1877F2", "#0A66C2", "#3D7C47",
@@ -108,7 +109,7 @@ export function AccountForm({
         <textarea name="notes" rows={2} defaultValue={account?.notes ?? ""} className="field" placeholder="Contraintes, hashtags récurrents, charte…" />
       </label>
       <div className="md:col-span-2">
-        <button type="submit" className="btn btn-accent">{submitLabel}</button>
+        <SubmitButton label={submitLabel} />
       </div>
     </form>
   );

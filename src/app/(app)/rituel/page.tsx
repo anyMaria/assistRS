@@ -28,7 +28,7 @@ export default async function RituelPage({
       <div>
         <h1 className="font-display text-4xl italic">Rituel mensuel</h1>
         <p className="card mt-8 p-8 text-center text-ink/60">
-          Crée d&apos;abord un <Link href="/comptes" className="font-semibold text-accent underline">compte</Link>{" "}
+          Crée d&apos;abord une <Link href="/marques" className="font-semibold text-accent underline">marque</Link>{" "}
           pour préparer son calendrier éditorial.
         </p>
       </div>

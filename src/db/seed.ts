@@ -202,6 +202,7 @@ const defaultViews = [
   },
   { entity: "publications", name: "Calendrier", type: "calendrier", config: "{}" },
   { entity: "publications", name: "Table", type: "table", config: "{}" },
+  { entity: "publications", name: "Galerie", type: "galerie", config: "{}" },
   {
     entity: "publications",
     name: "Kanban par statut",

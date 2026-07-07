@@ -14,7 +14,7 @@ const items = [
   { href: "/analyse", label: "Analyse", short: "Analyse", icon: "◎" },
   { href: "/bilan", label: "Bilan", short: "Bilan", icon: "✉" },
   { href: "/rituel", label: "Rituel mensuel", short: "Rituel", icon: "☾" },
-  { href: "/comptes", label: "Comptes", short: "Comptes", icon: "▣" },
+  { href: "/marques", label: "Marques", short: "Marques", icon: "▣" },
   { href: "/parametres", label: "Paramètres", short: "Réglages", icon: "⚙" },
 ];
 

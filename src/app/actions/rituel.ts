@@ -3,11 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { Type } from "@google/genai";
 import { db, monthlyRituals, accounts, publications } from "@/db";
 import { buildBrandContext } from "@/lib/brand-context";
 import { buildCandidateSlots, currentMonth } from "@/lib/rituel-calendar";
-import { ai, MODEL, PREAMBULE, geminiErrorMessage } from "@/lib/gemini";
+import { Type, PREAMBULE, generateJSON } from "@/lib/gemini";
 import { logUsage } from "@/lib/api-usage";
 import { insertDefaultSteps } from "@/lib/production-steps";
 
@@ -56,10 +55,6 @@ export async function genererPropositions(id: number, formData: FormData): Promi
       error: "Aucun créneau fort n'est configuré pour les plateformes de cette marque — vérifie la grille dans Programmation.",
     };
   }
-  if (!process.env.GEMINI_API_KEY) {
-    return { ok: false, error: "GEMINI_API_KEY manquant — le rituel ne peut pas proposer de calendrier." };
-  }
-
   const brandContext = await buildBrandContext(account.id);
   const nombre = Math.min(answers.nombrePublications, candidates.length);
   const userMessage = `Mois à préparer : ${ritual.month}
@@ -75,68 +70,59 @@ Choisis exactement ${nombre} créneaux parmi la liste ci-dessus (des index diff�
 dans le mois, jamais deux fois le même jour pour la même plateforme) et propose pour chacun une
 publication : pilier, titre, accroche, format.`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: userMessage,
-      config: {
-        systemInstruction: PREAMBULE + "\n\n" + brandContext,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          required: ["publications"],
-          properties: {
-            publications: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                required: ["index", "pilier", "titre", "accroche", "format"],
-                properties: {
-                  index: { type: Type.INTEGER },
-                  pilier: { type: Type.STRING },
-                  titre: { type: Type.STRING },
-                  accroche: { type: Type.STRING },
-                  format: { type: Type.STRING, enum: ["carrousel", "reel", "story", "post"] },
-                },
-              },
+  const result = await generateJSON<{
+    publications?: Array<{ index: number; pilier: string; titre: string; accroche: string; format: string }>;
+  }>({
+    systemInstruction: PREAMBULE + "\n\n" + brandContext,
+    contents: userMessage,
+    responseSchema: {
+      type: Type.OBJECT,
+      required: ["publications"],
+      properties: {
+        publications: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            required: ["index", "pilier", "titre", "accroche", "format"],
+            properties: {
+              index: { type: Type.INTEGER },
+              pilier: { type: Type.STRING },
+              titre: { type: Type.STRING },
+              accroche: { type: Type.STRING },
+              format: { type: Type.STRING, enum: ["carrousel", "reel", "story", "post"] },
             },
           },
         },
       },
+    },
+  });
+  if (!result.ok) return { ok: false, error: result.error };
+  await logUsage("gemini", "rituel-calendrier", 0);
+
+  const byIndex = new Map(candidates.map((c) => [c.index, c]));
+  const seen = new Set<number>();
+  const proposal = (result.data.publications ?? [])
+    .filter((p) => byIndex.has(p.index) && !seen.has(p.index) && seen.add(p.index))
+    .slice(0, nombre)
+    .map((p) => {
+      const c = byIndex.get(p.index)!;
+      return {
+        date: c.date,
+        heure: c.heure,
+        plateforme: c.plateforme,
+        format: p.format,
+        pilier: p.pilier,
+        titre: p.titre,
+        accroche: p.accroche,
+      };
     });
-    await logUsage("gemini", "rituel-calendrier", 0);
 
-    const data = JSON.parse(response.text ?? "{}") as {
-      publications?: Array<{ index: number; pilier: string; titre: string; accroche: string; format: string }>;
-    };
-    const byIndex = new Map(candidates.map((c) => [c.index, c]));
-    const seen = new Set<number>();
-    const proposal = (data.publications ?? [])
-      .filter((p) => byIndex.has(p.index) && !seen.has(p.index) && seen.add(p.index))
-      .slice(0, nombre)
-      .map((p) => {
-        const c = byIndex.get(p.index)!;
-        return {
-          date: c.date,
-          heure: c.heure,
-          plateforme: c.plateforme,
-          format: p.format,
-          pilier: p.pilier,
-          titre: p.titre,
-          accroche: p.accroche,
-        };
-      });
-
-    await db
-      .update(monthlyRituals)
-      .set({ proposal: JSON.stringify(proposal), status: "propose" })
-      .where(eq(monthlyRituals.id, id));
-    revalidatePath("/rituel");
-    return { ok: true };
-  } catch (e) {
-    console.error("[gemini] génération du calendrier mensuel échouée", e);
-    return { ok: false, error: geminiErrorMessage(e) };
-  }
+  await db
+    .update(monthlyRituals)
+    .set({ proposal: JSON.stringify(proposal), status: "propose" })
+    .where(eq(monthlyRituals.id, id));
+  revalidatePath("/rituel");
+  return { ok: true };
 }
 
 export type ValiderItem = {

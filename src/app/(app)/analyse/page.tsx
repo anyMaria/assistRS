@@ -44,7 +44,7 @@ export default async function AnalysePage({
       <div>
         <h1 className="font-display text-4xl italic">Analyse</h1>
         <p className="card mt-6 p-5">
-          Commence par <Link href="/comptes" className="font-semibold text-accent underline">créer un compte</Link>.
+          Commence par <Link href="/marques" className="font-semibold text-accent underline">créer une marque</Link>.
         </p>
       </div>
     );

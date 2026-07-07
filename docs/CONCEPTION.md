@@ -352,6 +352,56 @@ optimisés en priorité. PWA iPhone en phase finale (manifest, icônes, web push
 - **G6** — Rituels : bilan hebdo (Resend + cron), rituel mensuel guidé
 - **G7** — Recherche ⌘K, page formats, polish, PWA, déploiement Vercel+Turso
 
+## 13 bis. Compléments post-G1 (retours d'Ana, 06/07/2026)
+
+Ajouts décidés après une première prise en main de G1, implémentés dans la foulée de G1
+(avant G2) :
+
+1. **Idées liées aux piliers de la marque** — le formulaire de création d'idée propose un
+   champ **Marque** ; le champ **Pilier** qui suit se peuple automatiquement avec les
+   piliers déjà définis dans l'onglet Ligne éditoriale de la marque choisie (fini la
+   saisie manuelle du thème à chaque fois). Le champ **Thème** libre reste disponible en
+   complément, optionnel.
+2. **Faisabilité** — chaque idée porte un niveau de faisabilité (**peu de temps** /
+   **moyennement de temps** / **beaucoup de temps**), une estimation du temps de
+   production (montage, récolte d'informations…). Une valeur par défaut est suggérée
+   selon le format (reel/carrousel → moyenne, post/story → faible) mais reste
+   modifiable à la main.
+3. **Colonne « Ajout dans le planning »** — dans la vue Table des idées, la
+   transformation d'une idée en publication (choix de la plateforme + date, bouton
+   « → Ajouter au planning ») a sa propre colonne dédiée, séparée des actions
+   Dupliquer/Supprimer, pour plus de clarté.
+4. **Calendrier configurable** — les vues Calendrier affichent désormais chaque
+   publication/idée sous forme de petit carreau (façon Notion) au lieu d'une simple
+   ligne tronquée. Les propriétés visibles sur ces carreaux (marque, plateforme, format,
+   statut, pilier, faisabilité…) se choisissent par vue dans **Paramètres → Vues → ⚙
+   réglages**.
+5. **Filtres et tri par vue** — chaque vue sauvegardée (table, kanban, calendrier,
+   galerie) peut désormais définir un tri (champ + ordre) et des filtres combinés en ET,
+   réglables au même endroit (**Paramètres → Vues → ⚙ réglages**). Les couleurs
+   conditionnelles restent dans la même page, section dédiée.
+6. **Vue Galerie** — un 4ᵉ type de vue (en plus de table/kanban/calendrier), disponible
+   sur les publications : grille de vignettes (façon Pinterest) de l'aperçu visuel final
+   de chaque publication (nouveau champ `visualUrl`, une URL directe pour l'instant —
+   l'upload complet suivra avec le pipeline d'assets de G2/G3). Vignette cliquable :
+   ouvre le lien si renseigné.
+7. **Statistiques groupées par marque** — `/statistiques?compte=<id>` affiche désormais
+   une **vue d'ensemble** (KPI agrégés toutes plateformes confondues) suivie d'un
+   **détail par plateforme** (bouton par plateforme pour filtrer la liste en dessous).
+8. **Décisions actées, hors scope pour l'instant** :
+   - **Connexion automatique aux réseaux sociaux** (récupération des stats sans saisie
+     manuelle) : jugé trop lourd pour l'instant (comptes développeur Meta/LinkedIn,
+     validation, tokens). On reste sur la saisie manuelle + l'import CSV prévu en G5.
+     À reconsidérer plus tard si le besoin se confirme.
+
+Delta modèle de données (v2 → v2.1) :
+- `ideas` : + `pillar` (texte, nom du pilier choisi), + `feasibility` (`faible` |
+  `moyenne` | `elevee`)
+- `publications` : + `visualUrl` (texte, URL directe de l'aperçu visuel)
+- `view_configs.config` (JSON, déjà existant) accueille désormais : `displayProps`
+  (propriétés affichées sur les carreaux calendrier), `sortBy`/`sortDir` (tri), `filters`
+  (liste de `{field, operator, value}`, combinés en ET)
+
 ## 14. Glossaire (vocabulaire unique, utilisé partout dans l'UI et le code)
 
 | Terme | Définition |
@@ -359,6 +409,7 @@ optimisés en priorité. PWA iPhone en phase finale (manifest, icônes, web push
 | **Marque** | Un compte géré (Trinkets Design, un client, une collectivité). Entité racine. |
 | **Espace de marque** | La fiche complète d'une marque : contexte, identité, ligne éditoriale, mémoire IA. |
 | **Pilier** | Thème récurrent de la ligne éditoriale, avec une part indicative (ex. Coulisses 30 %). |
+| **Faisabilité** | Estimation du temps de production d'une idée : peu / moyennement / beaucoup de temps. |
 | **Idée** | Un concept de contenu, pas encore daté. Devient une publication via « Planifier ». |
 | **Publication** | Un contenu daté sur une plateforme (planifiée ou publiée). |
 | **Brief** | Le descriptif d'une publication (sujet, angle, structure). |
