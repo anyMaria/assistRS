@@ -14,6 +14,8 @@ export const accounts = sqliteTable("accounts", {
   // Délai approximatif (en jours) de validation par le client
   validationDelayDays: integer("validation_delay_days").notNull().default(3),
   color: text("color").notNull().default("#DE2F2C"),
+  // Taux horaire optionnel (en centimes) — valorise le temps passé dans le rapport mensuel.
+  hourlyRateCents: integer("hourly_rate_cents"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -42,6 +44,8 @@ export const ideas = sqliteTable("ideas", {
   title: text("title").notNull(),
   format: text("format").default("post"),
   platform: text("platform").default(""),
+  pillar: text("pillar").default(""), // pilier de la ligne éditoriale de la marque (brand_editorial.pillars)
+  feasibility: text("feasibility").default(""), // faible | moyenne | elevee (temps de production estimé)
   content: text("content").notNull(), // structure détaillée (texte)
   status: text("status").notNull().default("idee"), // idee | en_production | publiee
   source: text("source").notNull().default("manuelle"), // ia | manuelle
@@ -63,6 +67,8 @@ export const publications = sqliteTable("publications", {
   plannedAt: integer("planned_at", { mode: "timestamp" }),
   publishedAt: integer("published_at", { mode: "timestamp" }),
   url: text("url").default(""),
+  visualUrl: text("visual_url").default(""), // aperçu du visuel final (URL directe pour l'instant)
+  caption: text("caption").default(""), // légende appliquée (générée par IA ou saisie à la main)
   ideaId: integer("idea_id").references(() => ideas.id, {
     onDelete: "set null",
   }),
@@ -127,6 +133,89 @@ export const colorRules = sqliteTable("color_rules", {
   value: text("value").notNull(),
   color: text("color").notNull(), // couleur appliquée à la ligne/carte
   label: text("label").default(""),
+});
+
+// Contexte d'entreprise de la marque (1-1 accounts) — CONCEPTION.md §3.1
+export const brandProfiles = sqliteTable("brand_profiles", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .unique()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  size: text("size").default(""), // solo | tpe | pme | collectivite
+  location: text("location").default(""),
+  description: text("description").default(""),
+  offering: text("offering").default(""),
+  positioning: text("positioning").default(""),
+  personas: text("personas").default(""),
+  keyPeople: text("key_people").notNull().default("[]"), // JSON [{name, role, contact, prefs}]
+  competitors: text("competitors").notNull().default("[]"), // JSON [string]
+  seasonality: text("seasonality").notNull().default("[]"), // JSON [{label, period}]
+  links: text("links").notNull().default("[]"), // JSON [{platform, url}]
+});
+
+// Identité visuelle (1-1 accounts) — CONCEPTION.md §3.2
+export const brandIdentity = sqliteTable("brand_identity", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .unique()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  palette: text("palette").notNull().default("[]"), // JSON [{name, hex}]
+  fonts: text("fonts").notNull().default("[]"), // JSON [{name, usage}]
+  imageStyle: text("image_style").default(""),
+  usageRules: text("usage_rules").default(""),
+});
+
+// Assets réutilisables (logo, gabarit, photo, moodboard) — CONCEPTION.md §3.2
+export const brandAssets = sqliteTable("brand_assets", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  type: text("type").notNull().default("logo"), // logo | gabarit | photo | moodboard
+  blobUrl: text("blob_url").notNull().default(""),
+  name: text("name").notNull().default(""),
+  tags: text("tags").notNull().default("[]"), // JSON [string]
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Ligne éditoriale (1-1 accounts) — CONCEPTION.md §3.3
+export const brandEditorial = sqliteTable("brand_editorial", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .unique()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  mainMessage: text("main_message").default(""),
+  secondaryMessages: text("secondary_messages").notNull().default("[]"), // JSON [string]
+  pillars: text("pillars").notNull().default("[]"), // JSON [{name, sharePercent}]
+  toneVoice: text("tone_voice").default(""),
+  toneExamples: text("tone_examples").notNull().default("[]"), // JSON [{onDit, onNeDitPas}]
+  dos: text("dos").notNull().default("[]"), // JSON [string]
+  donts: text("donts").notNull().default("[]"), // JSON [string]
+  baseHashtags: text("base_hashtags").notNull().default("[]"), // JSON [string]
+  bannedHashtags: text("banned_hashtags").notNull().default("[]"), // JSON [string]
+  emojiPolicy: text("emoji_policy").notNull().default("parcimonie"), // jamais | parcimonie | librement
+  ctas: text("ctas").notNull().default("[]"), // JSON [string]
+  languages: text("languages").default("fr"),
+  legalMentions: text("legal_mentions").default(""),
+});
+
+// Mémoire de corrections IA (1-n accounts) — CONCEPTION.md §3.4
+export const brandMemoryRules = sqliteTable("brand_memory_rules", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  rule: text("rule").notNull(),
+  origin: text("origin").default(""),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
 
 // Une recherche d'inspiration lancée sur une source (Pinterest, Instagram…)
@@ -232,6 +321,85 @@ export const icalTokens = sqliteTable("ical_tokens", {
   revokedAt: integer("revoked_at", { mode: "timestamp" }),
 });
 
+// Session du rituel mensuel (un par marque et par mois) : réponses au wizard,
+// calendrier proposé par l'IA, et statut de validation.
+export const monthlyRituals = sqliteTable("monthly_rituals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  month: text("month").notNull(), // "YYYY-MM"
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  answers: text("answers").notNull().default("{}"), // JSON : quoiDeNeuf, promos, evenements, contraintes
+  proposal: text("proposal").notNull().default("[]"), // JSON : { date, plateforme, format, pilier, titre, accroche }[]
+  status: text("status").notNull().default("brouillon"), // brouillon | propose | valide
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Objectif chiffré par marque, sur une période donnée.
+export const goals = sqliteTable("goals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  metric: text("metric").notNull(), // abonnes | engagement | conversions
+  // abonnes/conversions : nombre entier. engagement : points de base (450 = 4,50 %).
+  target: integer("target").notNull(),
+  periodStart: integer("period_start", { mode: "timestamp" }).notNull(),
+  periodEnd: integer("period_end", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Saisie de temps passé — base de facturation, valorisée si taux horaire renseigné.
+export const timeEntries = sqliteTable("time_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  publicationId: integer("publication_id").references(() => publications.id, {
+    onDelete: "set null",
+  }),
+  minutes: integer("minutes").notNull(),
+  note: text("note").default(""),
+  date: integer("date", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Rapport PDF mensuel généré pour une marque.
+export const reports = sqliteTable("reports", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  month: text("month").notNull(), // "YYYY-MM"
+  blobUrl: text("blob_url"), // pathname du blob privé, null si Blob non configuré à la génération
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Génération IA (légende, idées, calendrier, analyse, amélioration) — CONCEPTION.md §10
+export const generations = sqliteTable("generations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  publicationId: integer("publication_id").references(() => publications.id, { onDelete: "set null" }),
+  ideaId: integer("idea_id").references(() => ideas.id, { onDelete: "set null" }),
+  kind: text("kind").notNull(), // legende | idees | calendrier | analyse | amelioration
+  promptSummary: text("prompt_summary").default(""),
+  output: text("output").notNull().default(""),
+  editedOutput: text("edited_output").default(""),
+  appliedAt: integer("applied_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
@@ -241,6 +409,11 @@ export type TimeSlot = typeof timeSlots.$inferSelect;
 export type CsvMapping = typeof csvMappings.$inferSelect;
 export type ViewConfig = typeof viewConfigs.$inferSelect;
 export type ColorRule = typeof colorRules.$inferSelect;
+export type BrandProfile = typeof brandProfiles.$inferSelect;
+export type BrandIdentity = typeof brandIdentity.$inferSelect;
+export type BrandAsset = typeof brandAssets.$inferSelect;
+export type BrandEditorial = typeof brandEditorial.$inferSelect;
+export type BrandMemoryRule = typeof brandMemoryRules.$inferSelect;
 export type InspirationSearch = typeof inspirationSearches.$inferSelect;
 export type InspirationItem = typeof inspirationItems.$inferSelect;
 export type Moodboard = typeof moodboards.$inferSelect;
@@ -248,3 +421,8 @@ export type ApiUsage = typeof apiUsage.$inferSelect;
 export type ProductionStep = typeof productionSteps.$inferSelect;
 export type Recurrence = typeof recurrences.$inferSelect;
 export type IcalToken = typeof icalTokens.$inferSelect;
+export type MonthlyRitual = typeof monthlyRituals.$inferSelect;
+export type Goal = typeof goals.$inferSelect;
+export type TimeEntry = typeof timeEntries.$inferSelect;
+export type Report = typeof reports.$inferSelect;
+export type Generation = typeof generations.$inferSelect;

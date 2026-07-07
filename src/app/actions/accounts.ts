@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, accounts } from "@/db";
@@ -14,10 +15,11 @@ const accountSchema = z.object({
   notes: z.string().default(""),
   validationDelayDays: z.coerce.number().int().min(0).max(60).default(3),
   color: z.string().default("#DE2F2C"),
+  hourlyRate: z.coerce.number().min(0).optional(),
 });
 
 function parseAccountForm(formData: FormData) {
-  return accountSchema.parse({
+  const data = accountSchema.parse({
     name: formData.get("name"),
     sector: formData.get("sector") ?? "",
     tone: formData.get("tone") ?? "",
@@ -26,13 +28,16 @@ function parseAccountForm(formData: FormData) {
     notes: formData.get("notes") ?? "",
     validationDelayDays: formData.get("validationDelayDays") ?? 3,
     color: formData.get("color") ?? "#DE2F2C",
+    hourlyRate: formData.get("hourlyRateCents")?.toString() || undefined,
   });
+  const { hourlyRate, ...rest } = data;
+  return { ...rest, hourlyRateCents: hourlyRate !== undefined ? Math.round(hourlyRate * 100) : null };
 }
 
 export async function createAccount(formData: FormData) {
   const data = parseAccountForm(formData);
   await db.insert(accounts).values({ ...data, platforms: JSON.stringify(data.platforms) });
-  revalidatePath("/comptes");
+  revalidatePath("/marques");
 }
 
 export async function updateAccount(id: number, formData: FormData) {
@@ -41,10 +46,16 @@ export async function updateAccount(id: number, formData: FormData) {
     .update(accounts)
     .set({ ...data, platforms: JSON.stringify(data.platforms) })
     .where(eq(accounts.id, id));
-  revalidatePath("/comptes");
+  revalidatePath("/marques");
 }
 
 export async function deleteAccount(id: number) {
   await db.delete(accounts).where(eq(accounts.id, id));
-  revalidatePath("/comptes");
+  revalidatePath("/marques");
+}
+
+export async function deleteAccountAndRedirect(id: number) {
+  await db.delete(accounts).where(eq(accounts.id, id));
+  revalidatePath("/marques");
+  redirect("/marques");
 }

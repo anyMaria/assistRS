@@ -1,5 +1,6 @@
 import { addSnapshot } from "@/app/actions/publications";
 import { STAT_FIELDS } from "@/lib/constants";
+import { SubmitButton } from "@/components/SubmitButton";
 
 /** Saisie rapide d'un relevé de stats — pensé mobile : gros champs numériques. */
 export function SnapshotForm({ publicationId }: { publicationId: number }) {
@@ -20,7 +21,7 @@ export function SnapshotForm({ publicationId }: { publicationId: number }) {
         </label>
       ))}
       <div className="col-span-3 md:col-span-5">
-        <button type="submit" className="btn btn-accent">Enregistrer le relevé</button>
+        <SubmitButton label="Enregistrer le relevé" />
       </div>
     </form>
   );

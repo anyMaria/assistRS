@@ -4,8 +4,9 @@ import { db, accounts, publications, statSnapshots } from "@/db";
 import { createPublication, deletePublication } from "@/app/actions/publications";
 import { PublicationForm } from "@/components/PublicationForm";
 import { SnapshotForm } from "@/components/SnapshotForm";
-import { engagementRate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
+import { aggregate, engagementRate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
 import {
+  PLATFORMS,
   platformLabel,
   platformColor,
   formatLabel,
@@ -18,20 +19,40 @@ export const dynamic = "force-dynamic";
 export default async function StatistiquesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ compte?: string }>;
+  searchParams: Promise<{ compte?: string; plateforme?: string }>;
 }) {
-  const { compte } = await searchParams;
+  const { compte, plateforme } = await searchParams;
   const accountId = compte ? Number(compte) : null;
 
   const allAccounts = await db.select().from(accounts);
-  const pubs = await db
+  const accountPubs = await db
     .select()
     .from(publications)
     .where(accountId ? eq(publications.accountId, accountId) : undefined)
     .orderBy(desc(publications.publishedAt), desc(publications.plannedAt));
+  const pubs = plateforme ? accountPubs.filter((p) => p.platform === plateforme) : accountPubs;
   const snaps = await db.select().from(statSnapshots).orderBy(desc(statSnapshots.recordedAt));
   const latest = latestSnapshots(snaps);
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
+
+  // Vue d'ensemble par marque : agrégat global puis détail par plateforme.
+  const overview =
+    accountId !== null
+      ? {
+          global: aggregate(
+            accountPubs.map((p) => latest.get(p.id)).filter((s): s is NonNullable<typeof s> => !!s),
+          ),
+          byPlatform: PLATFORMS.map((p) => ({
+            platform: p,
+            agg: aggregate(
+              accountPubs
+                .filter((pub) => pub.platform === p.value)
+                .map((pub) => latest.get(pub.id))
+                .filter((s): s is NonNullable<typeof s> => !!s),
+            ),
+          })).filter((x) => x.agg.count > 0),
+        }
+      : null;
 
   return (
     <div>
@@ -43,7 +64,7 @@ export default async function StatistiquesPage({
 
       {allAccounts.length === 0 ? (
         <p className="card mt-6 p-5">
-          Commence par <Link href="/comptes" className="font-semibold text-accent underline">créer un compte</Link>.
+          Commence par <Link href="/marques" className="font-semibold text-accent underline">créer une marque</Link>.
         </p>
       ) : (
         <>
@@ -75,6 +96,60 @@ export default async function StatistiquesPage({
               </Link>
             ))}
           </div>
+
+          {overview && (
+            <section className="mt-6">
+              <h2 className="font-display text-2xl">Vue d&apos;ensemble — {accountById.get(accountId!)?.name}</h2>
+              <div className="card mt-3 p-4" style={{ borderTopWidth: 6, borderTopColor: accountById.get(accountId!)?.color }}>
+                <p className="field-label">Toutes plateformes confondues</p>
+                <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm md:grid-cols-4">
+                  <div>
+                    <dt className="text-ink/50">Engagement</dt>
+                    <dd className="text-2xl font-bold">{formatRate(overview.global.engagementRate)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-ink/50">Portée cumulée</dt>
+                    <dd className="text-2xl font-bold">{formatNumber(overview.global.reach)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-ink/50">Abonnés gagnés</dt>
+                    <dd className="font-semibold">{formatNumber(overview.global.followersGained)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-ink/50">Conversions</dt>
+                    <dd className="font-semibold">{formatNumber(overview.global.conversions)}</dd>
+                  </div>
+                </dl>
+                <p className="mt-2 text-xs text-ink/40">
+                  {overview.global.count} publication{overview.global.count > 1 ? "s" : ""} avec stats
+                </p>
+              </div>
+
+              {overview.byPlatform.length > 0 && (
+                <>
+                  <p className="field-label mt-4">Détail par plateforme</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Link
+                      href={`/statistiques?compte=${accountId}`}
+                      className={`btn ${!plateforme ? "bg-ink text-white" : ""}`}
+                    >
+                      Toutes
+                    </Link>
+                    {overview.byPlatform.map(({ platform, agg }) => (
+                      <Link
+                        key={platform.value}
+                        href={`/statistiques?compte=${accountId}&plateforme=${platform.value}`}
+                        className={`btn ${plateforme === platform.value ? "text-white" : ""}`}
+                        style={plateforme === platform.value ? { backgroundColor: platform.color, borderColor: "#1C1917" } : undefined}
+                      >
+                        {platform.label} · {formatRate(agg.engagementRate)}
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
 
           <section className="mt-6 space-y-4">
             {pubs.length === 0 && (

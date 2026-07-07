@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 import { db, timeSlots } from "@/db";
 
 /**
@@ -47,4 +48,50 @@ export async function cycleSlot(
     }
   }
   revalidatePath("/programmation");
+}
+
+const cellsSchema = z.array(
+  z.object({ dayOfWeek: z.number().int().min(0).max(6), hour: z.number().int(), strength: z.number().int().min(1).max(3) }),
+);
+
+/**
+ * Applique les créneaux personnalisés calculés à partir des vraies performances
+ * (src/lib/schedule-analysis.ts) — upsert uniquement les cellules proposées, sans
+ * toucher au reste de la grille (respecte les ajustements manuels d'Ana ailleurs).
+ */
+export async function applyPersonalizedSlots(platform: string, contentType: string, formData: FormData) {
+  const raw = formData.get("cells");
+  if (typeof raw !== "string") return;
+  const cells = cellsSchema.parse(JSON.parse(raw));
+
+  for (const cell of cells) {
+    const existing = await db
+      .select()
+      .from(timeSlots)
+      .where(
+        and(
+          eq(timeSlots.platform, platform),
+          eq(timeSlots.contentType, contentType),
+          eq(timeSlots.dayOfWeek, cell.dayOfWeek),
+          eq(timeSlots.hour, cell.hour),
+        ),
+      );
+    if (existing.length === 0) {
+      await db.insert(timeSlots).values({
+        platform,
+        contentType,
+        dayOfWeek: cell.dayOfWeek,
+        hour: cell.hour,
+        strength: cell.strength,
+        source: "personnalise",
+      });
+    } else {
+      await db
+        .update(timeSlots)
+        .set({ strength: cell.strength, source: "personnalise" })
+        .where(eq(timeSlots.id, existing[0].id));
+    }
+  }
+  revalidatePath("/programmation");
+  revalidatePath("/analyse");
 }

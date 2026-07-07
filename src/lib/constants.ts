@@ -30,6 +30,25 @@ export const PUBLICATION_STATUSES = [
   { value: "publiee", label: "Publiée" },
 ] as const;
 
+export const FEASIBILITY_LEVELS = [
+  { value: "faible", label: "Peu de temps", color: "#3D7C47" },
+  { value: "moyenne", label: "Moyennement de temps", color: "#D97706" },
+  { value: "elevee", label: "Beaucoup de temps", color: "#7A1512" },
+] as const;
+
+/** Suggestion par défaut selon le format — reste modifiable à la main. */
+export function suggestedFeasibility(format: string): string {
+  if (format === "reel" || format === "carrousel") return "moyenne";
+  return "faible";
+}
+
+export function feasibilityLabel(value: string): string {
+  return FEASIBILITY_LEVELS.find((f) => f.value === value)?.label ?? value;
+}
+export function feasibilityColor(value: string): string {
+  return FEASIBILITY_LEVELS.find((f) => f.value === value)?.color ?? "#1C1917";
+}
+
 export const CONTENT_TYPES = [
   { value: "post", label: "Posts" },
   { value: "reel", label: "Reels" },
@@ -50,6 +69,12 @@ export const PRODUCTION_STEPS = [
 export const RECURRENCE_FREQS = [
   { value: "hebdo", label: "Chaque semaine" },
   { value: "mensuel", label: "Chaque mois" },
+] as const;
+
+export const GOAL_METRICS = [
+  { value: "abonnes", label: "Abonnés gagnés" },
+  { value: "engagement", label: "Taux d'engagement" },
+  { value: "conversions", label: "Conversions" },
 ] as const;
 
 export const STAT_FIELDS = [
@@ -78,6 +103,19 @@ export function ideaStatusLabel(value: string): string {
 }
 export function publicationStatusLabel(value: string): string {
   return PUBLICATION_STATUSES.find((s) => s.value === value)?.label ?? value;
+}
+export function goalMetricLabel(value: string): string {
+  return GOAL_METRICS.find((m) => m.value === value)?.label ?? value;
+}
+export function formatMoney(cents: number): string {
+  return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+}
+export function formatMinutes(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} h`;
+  return `${h} h ${m}`;
 }
 
 export function formatDate(d: Date | null | undefined): string {

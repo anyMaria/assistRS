@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, publications, statSnapshots } from "@/db";
+import { db, publications, statSnapshots, ideas } from "@/db";
 import { insertDefaultSteps } from "@/lib/production-steps";
 
 const pubSchema = z.object({
@@ -15,6 +15,7 @@ const pubSchema = z.object({
   plannedAt: z.string().optional(),
   publishedAt: z.string().optional(),
   url: z.string().default(""),
+  visualUrl: z.string().default(""),
   ideaId: z.coerce.number().int().optional(),
 });
 
@@ -34,6 +35,7 @@ function parsePubForm(formData: FormData) {
     plannedAt: formData.get("plannedAt")?.toString() || undefined,
     publishedAt: formData.get("publishedAt")?.toString() || undefined,
     url: formData.get("url") ?? "",
+    visualUrl: formData.get("visualUrl") ?? "",
     ideaId: formData.get("ideaId")?.toString() || undefined,
   });
   return {
@@ -85,16 +87,43 @@ export async function updatePublication(id: number, formData: FormData) {
 
 export async function setPublicationStatus(id: number, status: string) {
   const patch: Record<string, unknown> = { status };
+  const [pub] = await db.select().from(publications).where(eq(publications.id, id));
   if (status === "publiee") {
-    const [pub] = await db.select().from(publications).where(eq(publications.id, id));
     if (pub && !pub.publishedAt) patch.publishedAt = pub.plannedAt ?? new Date();
   }
   await db.update(publications).set(patch).where(eq(publications.id, id));
+  // La publication ne met jamais à jour deux statuts à la main : l'idée liée suit.
+  if (status === "publiee" && pub?.ideaId) {
+    await db.update(ideas).set({ status: "publiee" }).where(eq(ideas.id, pub.ideaId));
+    revalidatePath("/idees");
+  }
   revalidateAll();
 }
 
 export async function deletePublication(id: number) {
   await db.delete(publications).where(eq(publications.id, id));
+  revalidateAll();
+}
+
+/** Décline une publication vers une autre plateforme (CONCEPTION.md §4.4) : copie sans dates, brief/légende à adapter. */
+export async function declinerPublication(id: number, formData: FormData) {
+  const [pub] = await db.select().from(publications).where(eq(publications.id, id));
+  if (!pub) return;
+  const platform = formData.get("platform")?.toString();
+  if (!platform) return;
+  await db.insert(publications).values({
+    accountId: pub.accountId,
+    platform,
+    format: pub.format,
+    title: pub.title,
+    status: "planifiee",
+    plannedAt: null,
+    publishedAt: null,
+    url: "",
+    visualUrl: "",
+    caption: pub.caption,
+    ideaId: pub.ideaId,
+  });
   revalidateAll();
 }
 

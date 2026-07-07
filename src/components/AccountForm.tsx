@@ -1,5 +1,6 @@
 import type { Account } from "@/db/schema";
 import { PLATFORMS } from "@/lib/constants";
+import { SubmitButton } from "@/components/SubmitButton";
 
 const ACCOUNT_COLORS = [
   "#DE2F2C", "#B13589", "#1877F2", "#0A66C2", "#3D7C47",
@@ -67,6 +68,22 @@ export function AccountForm({
           date limite de création.
         </span>
       </label>
+      <label>
+        <span className="field-label">Taux horaire (€, optionnel)</span>
+        <input
+          type="number"
+          name="hourlyRateCents"
+          min={0}
+          step="0.01"
+          inputMode="decimal"
+          defaultValue={account?.hourlyRateCents != null ? (account.hourlyRateCents / 100).toFixed(2) : ""}
+          className="field"
+          placeholder="45"
+        />
+        <span className="mt-1 block text-xs text-ink/50">
+          Valorise le temps passé dans le rapport mensuel.
+        </span>
+      </label>
       <fieldset className="md:col-span-2">
         <span className="field-label">Couleur du compte</span>
         <div className="flex gap-2 pt-1">
@@ -92,7 +109,7 @@ export function AccountForm({
         <textarea name="notes" rows={2} defaultValue={account?.notes ?? ""} className="field" placeholder="Contraintes, hashtags récurrents, charte…" />
       </label>
       <div className="md:col-span-2">
-        <button type="submit" className="btn btn-accent">{submitLabel}</button>
+        <SubmitButton label={submitLabel} />
       </div>
     </form>
   );
