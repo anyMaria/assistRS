@@ -8,6 +8,7 @@ const items = [
   { href: "/creation", label: "Création", short: "Créer", icon: "✎" },
   { href: "/idees", label: "Idées", short: "Idées", icon: "☁" },
   { href: "/planning", label: "Planning", short: "Planning", icon: "▦" },
+  { href: "/s-inspirer", label: "S'inspirer", short: "Inspirer", icon: "✺" },
   { href: "/programmation", label: "Horaires", short: "Horaires", icon: "◔" },
   { href: "/statistiques", label: "Statistiques", short: "Stats", icon: "▁▃▅" },
   { href: "/analyse", label: "Analyse", short: "Analyse", icon: "◎" },
@@ -55,7 +56,9 @@ export function Nav() {
 
       {/* Barre du bas — mobile (5 entrées principales, le reste via Paramètres) */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 border-t-2 border-ink bg-paper">
-        {[items[0], items[2], items[3], items[5], items[8]].map((item) => (
+        {["/", "/idees", "/planning", "/statistiques", "/parametres"]
+          .map((href) => items.find((item) => item.href === href)!)
+          .map((item) => (
           <Link
             key={item.href}
             href={item.href}
