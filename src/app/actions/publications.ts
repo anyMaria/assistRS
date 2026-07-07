@@ -98,6 +98,28 @@ export async function duplicatePublication(id: number) {
   revalidateAll();
 }
 
+/** Décline une publication vers une autre plateforme (CONCEPTION.md §4.4) : copie sans dates, brief/légende à adapter. */
+export async function declinerPublication(id: number, formData: FormData) {
+  const [pub] = await db.select().from(publications).where(eq(publications.id, id));
+  if (!pub) return;
+  const platform = formData.get("platform")?.toString();
+  if (!platform) return;
+  await db.insert(publications).values({
+    accountId: pub.accountId,
+    platform,
+    format: pub.format,
+    title: pub.title,
+    status: "planifiee",
+    plannedAt: null,
+    publishedAt: null,
+    url: "",
+    visualUrl: "",
+    caption: pub.caption,
+    ideaId: pub.ideaId,
+  });
+  revalidateAll();
+}
+
 // ——— Relevés de statistiques ———
 
 const snapshotSchema = z.object({
