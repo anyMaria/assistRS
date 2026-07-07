@@ -39,6 +39,19 @@ export const CONTENT_TYPES = [
 export const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 export const DAYS_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
+export const PRODUCTION_STEPS = [
+  { key: "brief", label: "Brief" },
+  { key: "maquette", label: "Maquette" },
+  { key: "envoye", label: "Envoyé au client" },
+  { key: "valide", label: "Validé" },
+  { key: "programme", label: "Programmé" },
+] as const;
+
+export const RECURRENCE_FREQS = [
+  { value: "hebdo", label: "Chaque semaine" },
+  { value: "mensuel", label: "Chaque mois" },
+] as const;
+
 export const STAT_FIELDS = [
   { value: "impressions", label: "Impressions" },
   { value: "reach", label: "Portée" },

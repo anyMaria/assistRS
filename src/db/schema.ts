@@ -192,6 +192,46 @@ export const apiUsage = sqliteTable("api_usage", {
     .default(sql`(unixepoch())`),
 });
 
+// Étape de la checklist de production d'une publication (5 par publication).
+export const productionSteps = sqliteTable("production_steps", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  publicationId: integer("publication_id")
+    .notNull()
+    .references(() => publications.id, { onDelete: "cascade" }),
+  key: text("key").notNull(), // brief | maquette | envoye | valide | programme
+  done: integer("done", { mode: "boolean" }).notNull().default(false),
+  doneAt: integer("done_at", { mode: "timestamp" }),
+});
+
+// Publication récurrente : génère automatiquement les occurrences à venir.
+export const recurrences = sqliteTable("recurrences", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(),
+  format: text("format").notNull(),
+  titlePattern: text("title_pattern").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0 = lundi … 6 = dimanche (cohérent avec time_slots)
+  hour: integer("hour").notNull(),
+  freq: text("freq").notNull().default("hebdo"), // hebdo | mensuel
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  lastGeneratedUntil: integer("last_generated_until", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Token secret révocable pour l'abonnement iCal (Google Calendar / iPhone).
+export const icalTokens = sqliteTable("ical_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  token: text("token").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  revokedAt: integer("revoked_at", { mode: "timestamp" }),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
@@ -205,3 +245,6 @@ export type InspirationSearch = typeof inspirationSearches.$inferSelect;
 export type InspirationItem = typeof inspirationItems.$inferSelect;
 export type Moodboard = typeof moodboards.$inferSelect;
 export type ApiUsage = typeof apiUsage.$inferSelect;
+export type ProductionStep = typeof productionSteps.$inferSelect;
+export type Recurrence = typeof recurrences.$inferSelect;
+export type IcalToken = typeof icalTokens.$inferSelect;

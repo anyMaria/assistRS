@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
-import { db, accounts, publications, statSnapshots } from "@/db";
+import { desc, inArray } from "drizzle-orm";
+import { db, accounts, publications, statSnapshots, productionSteps } from "@/db";
 import { aggregate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
 import {
   computeVisualDeadline,
   deadlineStatus,
   deadlineMessage,
 } from "@/lib/deadline";
+import { computeToRelaunch, computeToFollowUp } from "@/lib/attention";
 import { platformLabel, platformColor, formatDate } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,21 @@ export default async function DashboardPage() {
   const snaps = await db.select().from(statSnapshots).orderBy(desc(statSnapshots.recordedAt));
   const latest = latestSnapshots(snaps);
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
+
+  const steps = pubs.length
+    ? await db
+        .select()
+        .from(productionSteps)
+        .where(inArray(productionSteps.publicationId, pubs.map((p) => p.id)))
+    : [];
+  const stepsByPub = new Map<number, typeof steps>();
+  for (const s of steps) {
+    const list = stepsByPub.get(s.publicationId) ?? [];
+    list.push(s);
+    stepsByPub.set(s.publicationId, list);
+  }
+  const toRelaunch = computeToRelaunch(pubs, stepsByPub, accountById);
+  const toFollowUp = computeToFollowUp(pubs, latest, accountById);
 
   // Deadlines visuel des publications planifiées à venir
   const upcoming = pubs
@@ -85,6 +101,61 @@ export default async function DashboardPage() {
                     >
                       {deadlineMessage(deadline)}
                     </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* À relancer — envoyé au client sans validation après le délai de la marque */}
+          <section className="mt-10">
+            <h2 className="font-display text-2xl">À relancer</h2>
+            {toRelaunch.length === 0 ? (
+              <p className="mt-2 text-ink/50 italic">Aucune validation en retard.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {toRelaunch.map(({ pub, account, daysSinceSent }) => (
+                  <li key={pub.id} className="card flex flex-wrap items-center gap-2 p-3" style={{ borderLeftWidth: 8, borderLeftColor: "#D97706" }}>
+                    <span
+                      className="tag text-white"
+                      style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}
+                    >
+                      {platformLabel(pub.platform)}
+                    </span>
+                    <span className="font-semibold">{pub.title || "Sans titre"}</span>
+                    <span className="text-sm text-ink/50">{account?.name}</span>
+                    <span className="ml-auto flex items-center gap-1 text-sm font-semibold text-warn">
+                      <span aria-hidden>⚠</span> Envoyé il y a {daysSinceSent} j sans validation
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* À relever — publications publiées sans relevé récent (J+2/J+7) */}
+          <section className="mt-10">
+            <h2 className="font-display text-2xl">À relever</h2>
+            {toFollowUp.length === 0 ? (
+              <p className="mt-2 text-ink/50 italic">Tous les relevés sont à jour.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {toFollowUp.map(({ pub, account, daysSincePublished, daysSinceLastSnapshot }) => (
+                  <li key={pub.id} className="card flex flex-wrap items-center gap-2 p-3">
+                    <span
+                      className="tag text-white"
+                      style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}
+                    >
+                      {platformLabel(pub.platform)}
+                    </span>
+                    <span className="font-semibold">{pub.title || "Sans titre"}</span>
+                    <span className="text-sm text-ink/50">{account?.name}</span>
+                    <span className="ml-auto text-sm text-ink/70">
+                      {daysSinceLastSnapshot === null
+                        ? `Publiée il y a ${daysSincePublished} j, aucun relevé`
+                        : `Dernier relevé il y a ${daysSinceLastSnapshot} j`}
+                    </span>
+                    <Link href="/statistiques" className="btn text-xs">＋ Relever</Link>
                   </li>
                 ))}
               </ul>

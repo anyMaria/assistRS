@@ -9,6 +9,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Le flux iCal s'authentifie par son propre token secret (Google Calendar/iPhone
+  // ne peuvent pas porter notre cookie de session).
+  if (pathname.startsWith("/api/ical/")) {
+    return NextResponse.next();
+  }
+
   const ok = await verifySessionValue(request.cookies.get(sessionCookie.name)?.value);
   if (!ok) {
     if (pathname.startsWith("/api/")) {
