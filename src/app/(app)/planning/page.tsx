@@ -20,6 +20,7 @@ import { LegendeEditor } from "@/components/LegendeEditor";
 import { DeclinerForm } from "@/components/DeclinerForm";
 import { RecallCard } from "@/components/RecallCard";
 import { ProductionChecklist } from "@/components/ProductionChecklist";
+import { BufferButton } from "@/components/BufferButton";
 import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import type { RuleRow } from "@/lib/color-rules";
@@ -327,6 +328,12 @@ export default async function PlanningPage({
                             <DeclinerForm currentPlatform={pub.platform} action={declinerPublication.bind(null, pub.id)} />
                           </div>
                         </div>
+                        {pub.status === "planifiee" && (
+                          <div className="mt-4 border-t-2 border-ink pt-4">
+                            <p className="field-label">Buffer</p>
+                            <BufferButton publicationId={pub.id} />
+                          </div>
+                        )}
                       </>
                     );
                   }}

@@ -32,6 +32,15 @@
 > - Piste évoquée par Ana, pas encore spécifiée : bouton « Envoyer sur Buffer » depuis
 >   une publication planifiée (nécessiterait une intégration API Buffer) — à cadrer
 >   avant de l'ajouter à un bloc.
+>
+> **Ajout du 07/07/2026 — Envoi Buffer** : implémenté (`src/lib/buffer.ts`,
+> `src/app/actions/buffer.ts`, bouton dans `/planning`). API **GraphQL** de Buffer
+> (`https://api.buffer.com`, auth `Authorization: Bearer`) — pas l'ancienne API REST v1
+> (`api.bufferapp.com/1`), dépréciée pour les tokens « Publish API » actuels. Le canal
+> Buffer est choisi par correspondance `service` ↔ `publications.platform`
+> (instagram/facebook/linkedin). Contrainte vérifiée en réel : **Instagram exige un
+> visuel** (`visualUrl`) pour toute publication — bloqué côté app avec un message clair
+> avant l'appel API. Nouvelle variable d'env : `BUFFER_ACCESS_TOKEN`.
 
 ## 1. Vision
 
