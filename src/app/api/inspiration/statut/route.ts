@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       .where(eq(inspirationSearches.id, search.id));
   }
 
-  revalidatePath("/s-inspirer");
+  revalidatePath("/conception");
   const [updated] = await db.select().from(inspirationSearches).where(eq(inspirationSearches.id, search.id));
   return NextResponse.json({ status: updated.status, errorMessage: updated.errorMessage });
 }

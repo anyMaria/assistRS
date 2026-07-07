@@ -24,7 +24,7 @@ export function RelancerButton({ searchId }: { searchId: number }) {
     setNeedsConfirm(false);
     const ids = new Set((searchParams.get("recherche") ?? "").split(",").filter(Boolean));
     ids.add(String(res.searchIds[0]));
-    router.push(`/s-inspirer?recherche=${Array.from(ids).join(",")}`);
+    router.push(`/conception?onglet=inspirer&recherche=${Array.from(ids).join(",")}`);
   }
 
   return (

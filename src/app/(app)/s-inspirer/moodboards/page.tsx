@@ -32,7 +32,7 @@ export default async function MoodboardsPage() {
         Les visuels épinglés depuis S&apos;inspirer, par marque ou par thème.
       </p>
       <p className="mt-4">
-        <Link href="/s-inspirer" className="text-sm font-semibold text-accent underline underline-offset-2">
+        <Link href="/conception?onglet=inspirer" className="text-sm font-semibold text-accent underline underline-offset-2">
           ← Retour à S&apos;inspirer
         </Link>
       </p>
@@ -68,7 +68,7 @@ export default async function MoodboardsPage() {
       {boards.length === 0 ? (
         <p className="card mt-8 p-6 text-ink/60">
           Aucun moodboard pour l&apos;instant — épingle un visuel depuis{" "}
-          <Link href="/s-inspirer" className="font-semibold text-accent underline">
+          <Link href="/conception?onglet=inspirer" className="font-semibold text-accent underline">
             S&apos;inspirer
           </Link>
           , ou crée-en un ci-dessus.

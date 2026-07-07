@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { DAYS_SHORT } from "@/lib/constants";
+import { DAYS_SHORT, platformColor, platformLabel } from "@/lib/constants";
 import { CardModal, DetailFields } from "./CardModal";
+import { HourMarker } from "./HourMarker";
 import type { DataCard } from "./types";
+import type { SuggestedSlot } from "@/lib/suggested-slots";
 
 export type CalendarDeadline = {
   date: Date;
@@ -27,6 +29,7 @@ export function CalendarView({
   basePath,
   extraParams = "",
   displayProps = [],
+  suggestedSlots,
 }: {
   cards: DataCard[];
   deadlines?: CalendarDeadline[];
@@ -36,6 +39,8 @@ export function CalendarView({
   extraParams?: string;
   /** Propriétés à afficher sur chaque carreau (réglables dans /parametres). */
   displayProps?: string[];
+  /** Overlay « Horaires conseillés » (G10), activable/désactivable depuis le planning. */
+  suggestedSlots?: SuggestedSlot[];
 }) {
   const [year, m] = month.split("-").map(Number);
   const first = new Date(year, m - 1, 1);
@@ -76,6 +81,8 @@ export function CalendarView({
         {cells.map((day, i) => {
           const dayCards = day ? cards.filter((c) => c.date && sameDay(c.date, day)) : [];
           const dayDeadlines = day ? deadlines.filter((d) => sameDay(d.date, day)) : [];
+          const weekday = day ? (day.getDay() + 6) % 7 : -1;
+          const daySuggestions = day && suggestedSlots ? suggestedSlots.filter((s) => s.dayOfWeek === weekday) : [];
           return (
             <div
               key={i}
@@ -85,17 +92,26 @@ export function CalendarView({
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-ink/50">{day.getDate()}</span>
-                    <div className="flex gap-0.5">
-                      {dayDeadlines.map((d, idx) => (
-                        <span
+                    <div className="flex items-center gap-1">
+                      {daySuggestions.map((s, idx) => (
+                        <HourMarker
                           key={idx}
-                          title={d.title}
-                          aria-label={`Deadline : ${d.title}`}
-                          style={{ color: DEADLINE_DOT[d.status] }}
-                        >
-                          ◆
-                        </span>
+                          color={platformColor(s.platform)}
+                          label={`${platformLabel(s.platform)} : ${s.hour}h conseillé`}
+                        />
                       ))}
+                      <div className="flex gap-0.5">
+                        {dayDeadlines.map((d, idx) => (
+                          <span
+                            key={idx}
+                            title={d.title}
+                            aria-label={`Deadline : ${d.title}`}
+                            style={{ color: DEADLINE_DOT[d.status] }}
+                          >
+                            ◆
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <div className="mt-1 space-y-1">

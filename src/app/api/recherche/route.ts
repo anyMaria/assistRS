@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
         id: i.id,
         label: i.title,
         meta: i.theme || undefined,
-        href: `/idees`,
+        href: `/conception?onglet=idees`,
       })),
       ...matchPublications.map((p) => ({
         type: "publication" as const,
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
         id: t.id,
         label: t.title,
         meta: t.format,
-        href: `/creation`,
+        href: `/conception?onglet=creer`,
       })),
     ];
 

@@ -24,7 +24,7 @@ export async function appliquerLegende(
     revalidatePath("/planning");
   } else {
     await db.update(ideas).set({ content: texte }).where(eq(ideas.id, id));
-    revalidatePath("/idees");
+    revalidatePath("/conception");
   }
   revalidatePath("/");
 }

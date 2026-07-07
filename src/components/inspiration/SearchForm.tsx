@@ -30,7 +30,7 @@ export function SearchForm({ accounts, defaultTheme }: { accounts: Account[]; de
 
   useEffect(() => {
     if (state?.ok) {
-      router.push(`/s-inspirer?recherche=${state.searchIds.join(",")}`);
+      router.push(`/conception?onglet=inspirer&recherche=${state.searchIds.join(",")}`);
     }
   }, [state, router]);
 

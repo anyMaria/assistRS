@@ -18,7 +18,7 @@ const ruleSchema = z.object({
 
 function revalidateViews() {
   revalidatePath("/parametres");
-  revalidatePath("/idees");
+  revalidatePath("/conception");
   revalidatePath("/planning");
 }
 
@@ -119,5 +119,5 @@ export async function updateViewSettings(id: number, formData: FormData) {
 export async function deleteCsvMapping(id: number) {
   await db.delete(csvMappings).where(eq(csvMappings.id, id));
   revalidatePath("/parametres");
-  revalidatePath("/statistiques");
+  revalidatePath("/mesurer");
 }

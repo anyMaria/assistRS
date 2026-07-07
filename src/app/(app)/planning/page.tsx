@@ -10,7 +10,7 @@ import {
 } from "@/app/actions/publications";
 import { createRecurrence, toggleRecurrenceActive, deleteRecurrence } from "@/app/actions/recurrences";
 import { generateOccurrences } from "@/lib/recurrences";
-import { ViewTabs } from "@/components/dataviews/ViewTabs";
+import { ViewToolbar } from "@/components/dataviews/ViewToolbar";
 import { TableView } from "@/components/dataviews/TableView";
 import { KanbanView } from "@/components/dataviews/KanbanView";
 import { CalendarView, type CalendarDeadline } from "@/components/dataviews/CalendarView";
@@ -25,6 +25,8 @@ import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import type { RuleRow } from "@/lib/color-rules";
 import { parseViewSettings, applyViewSettings } from "@/lib/view-config";
+import { ensureDefaultView } from "@/lib/ensure-default-view";
+import { getSuggestedSlots } from "@/lib/suggested-slots";
 import { engagementRate, formatRate, latestSnapshots } from "@/lib/kpi";
 import { computeVisualDeadline, deadlineStatus, deadlineMessage, daysUntil } from "@/lib/deadline";
 import type { DataCard } from "@/components/dataviews/types";
@@ -47,14 +49,17 @@ export const dynamic = "force-dynamic";
 export default async function PlanningPage({
   searchParams,
 }: {
-  searchParams: Promise<{ vue?: string; mois?: string }>;
+  searchParams: Promise<{ vue?: string; mois?: string; horaires?: string }>;
 }) {
-  const { vue, mois } = await searchParams;
+  const { vue, mois, horaires } = await searchParams;
+  const horairesOn = horaires === "1";
 
   await generateOccurrences();
 
-  const views = await db.select().from(viewConfigs).where(eq(viewConfigs.entity, "publications"));
+  const rawViews = await db.select().from(viewConfigs).where(eq(viewConfigs.entity, "publications"));
+  const views = await ensureDefaultView("publications", rawViews);
   const activeView = views.find((v) => v.id === Number(vue)) ?? views[0];
+  const suggestedSlots = horairesOn ? await getSuggestedSlots() : undefined;
 
   const [allAccounts, allRecurrences] = await Promise.all([
     db.select().from(accounts),
@@ -153,6 +158,11 @@ export default async function PlanningPage({
     });
 
   const month = mois ?? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+  const horairesToggleParams = new URLSearchParams();
+  if (vue) horairesToggleParams.set("vue", vue);
+  horairesToggleParams.set("mois", month);
+  horairesToggleParams.set("horaires", horairesOn ? "0" : "1");
+  const horairesToggleHref = `/planning?${horairesToggleParams.toString()}`;
 
   // Recall (§4.3) — calculé côté serveur, aucun appel réseau.
   const linkedIdeaIds = list.map((p) => p.ideaId).filter((id): id is number => id != null);
@@ -292,8 +302,24 @@ export default async function PlanningPage({
 
           {views.length > 0 && activeView ? (
             <>
-              <div className="mt-6">
-                <ViewTabs views={views} activeId={activeView.id} basePath="/planning" />
+              <ViewToolbar
+                entity="publications"
+                basePath="/planning"
+                extraParams={horairesOn ? "&horaires=1" : ""}
+                views={views}
+                activeView={activeView}
+                rules={rules}
+              />
+
+              <div className="mt-3">
+                <Link href={horairesToggleHref} className={`btn text-sm ${horairesOn ? "bg-ink text-white" : ""}`}>
+                  {horairesOn ? "✓ Horaires conseillés" : "Afficher les horaires conseillés"}
+                </Link>
+                {horairesOn && (
+                  <span className="ml-2 text-xs text-ink/50">
+                    Créneaux forts par plateforme (grille de Paramètres) — clique sur un point pour voir l&apos;heure.
+                  </span>
+                )}
               </div>
 
               {activeView.type === "table" && (
@@ -303,8 +329,18 @@ export default async function PlanningPage({
                   renderExtra={(card) => {
                     const pub = list.find((p) => p.id === card.id)!;
                     const recall = recallByPubId.get(pub.id);
+                    const linkedIdea = pub.ideaId ? ideaById.get(pub.ideaId) : undefined;
                     return (
                       <>
+                        {linkedIdea && (
+                          <Link
+                            href="/conception?onglet=idees"
+                            className="tag mb-3 inline-flex text-accent"
+                            style={{ borderColor: "var(--color-accent)" }}
+                          >
+                            Depuis l&apos;idée : {linkedIdea.title}
+                          </Link>
+                        )}
                         {recall && <RecallCard match={recall} />}
                         <div className="mt-4 border-t-2 border-ink pt-4">
                           <p className="field-label">Checklist de production</p>
@@ -385,7 +421,9 @@ export default async function PlanningPage({
                   deadlines={deadlines}
                   month={month}
                   basePath="/planning"
+                  extraParams={`&horaires=${horairesOn ? "1" : "0"}`}
                   displayProps={settings.displayProps}
+                  suggestedSlots={suggestedSlots}
                 />
               )}
 

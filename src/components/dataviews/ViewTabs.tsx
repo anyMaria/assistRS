@@ -14,11 +14,14 @@ export function ViewTabs({
   activeId,
   basePath,
   extraParams = "",
+  trailing,
 }: {
   views: ViewConfig[];
   activeId: number;
   basePath: string;
   extraParams?: string;
+  /** Remplace le lien statique « + Nouvelle vue » (G10 : popover inline). */
+  trailing?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-1 border-b-2 border-ink">
@@ -36,13 +39,7 @@ export function ViewTabs({
           {v.name}
         </Link>
       ))}
-      <Link
-        href="/parametres#vues"
-        className="ml-2 px-2 py-1.5 text-sm text-ink/40 hover:text-accent"
-        title="Gérer les vues"
-      >
-        + Nouvelle vue
-      </Link>
+      {trailing}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, ideas, publications } from "@/db";
+import { PLATFORMS } from "@/lib/constants";
 
 const ideaSchema = z.object({
   accountId: z.coerce.number().int(),
@@ -33,16 +34,40 @@ export async function createIdea(formData: FormData) {
   });
   await db.insert(ideas).values(data);
   revalidatePath("/idees");
+  revalidatePath("/conception");
+}
+
+/** Créer l'idée puis la planifier immédiatement (bouton « Planifier tout de suite », G10). */
+export async function creerEtPlanifierIdee(formData: FormData) {
+  const data = ideaSchema.parse({
+    accountId: formData.get("accountId"),
+    theme: formData.get("theme") || formData.get("pillar") || formData.get("title"),
+    title: formData.get("title"),
+    format: formData.get("format") ?? "post",
+    platform: formData.get("platform") ?? "",
+    pillar: formData.get("pillar") ?? "",
+    feasibility: formData.get("feasibility") ?? "",
+    content: formData.get("content") ?? "",
+    status: formData.get("status") ?? "idee",
+    source: formData.get("source") ?? "manuelle",
+  });
+  const [idea] = await db.insert(ideas).values(data).returning();
+  if (!formData.get("platform")) {
+    formData.set("platform", data.platform || PLATFORMS[0].value);
+  }
+  await planifierIdee(idea.id, formData);
 }
 
 export async function setIdeaStatus(id: number, status: string) {
   await db.update(ideas).set({ status }).where(eq(ideas.id, id));
   revalidatePath("/idees");
+  revalidatePath("/conception");
 }
 
 export async function deleteIdea(id: number) {
   await db.delete(ideas).where(eq(ideas.id, id));
   revalidatePath("/idees");
+  revalidatePath("/conception");
 }
 
 export async function duplicateIdea(id: number) {
@@ -61,6 +86,7 @@ export async function duplicateIdea(id: number) {
     source: idea.source,
   });
   revalidatePath("/idees");
+  revalidatePath("/conception");
 }
 
 const planSchema = z.object({
@@ -89,6 +115,7 @@ export async function planifierIdee(id: number, formData: FormData) {
   });
   await db.update(ideas).set({ status: "en_production" }).where(eq(ideas.id, id));
   revalidatePath("/idees");
+  revalidatePath("/conception");
   revalidatePath("/planning");
   revalidatePath("/");
 }

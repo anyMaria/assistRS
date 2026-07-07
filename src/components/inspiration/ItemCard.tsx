@@ -3,16 +3,19 @@
 import { useState } from "react";
 import type { InspirationItem, Moodboard } from "@/db/schema";
 import { epinglerItem, creerMoodboard } from "@/app/actions/inspiration";
+import { createIdea } from "@/app/actions/ideas";
 import { signalText, type ApifySource } from "@/lib/apify";
 
 export function ItemCard({
   item,
   moodboards,
   accountId,
+  theme,
 }: {
   item: InspirationItem;
   moodboards: Moodboard[];
   accountId: number | null;
+  theme?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -49,6 +52,16 @@ export function ItemCard({
             >
               Voir l&apos;original
             </a>
+          )}
+          {accountId && (
+            <form action={createIdea}>
+              <input type="hidden" name="accountId" value={accountId} />
+              <input type="hidden" name="title" value={`Inspiration${item.author ? ` — ${item.author}` : ""}`} />
+              <input type="hidden" name="theme" value={theme ?? ""} />
+              <input type="hidden" name="content" value={item.originalUrl || item.imageUrl} />
+              <input type="hidden" name="source" value="manuelle" />
+              <button type="submit" className="btn text-xs">＋ En faire une idée</button>
+            </form>
           )}
           <button
             type="button"

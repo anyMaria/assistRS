@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Account } from "@/db/schema";
 import { PLATFORMS, formatLabel } from "@/lib/constants";
-import { createIdea } from "@/app/actions/ideas";
+import { createIdea, creerEtPlanifierIdee } from "@/app/actions/ideas";
 
 type IdeeGeneree = {
   titre: string;
@@ -133,9 +133,19 @@ export function IdeaGeneratorForm({ accounts }: { accounts: Account[] }) {
                 <input type="hidden" name="theme" value={theme} />
                 <input type="hidden" name="content" value={`${idee.accroche}\n\n${idee.structure.join("\n")}\n\nCTA : ${idee.cta}`} />
                 <input type="hidden" name="source" value="ia" />
-                <button type="submit" disabled={retenues.has(i)} className="btn text-xs disabled:cursor-not-allowed disabled:opacity-60">
-                  {retenues.has(i) ? "✓ Retenue" : "Retenir cette idée"}
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button type="submit" disabled={retenues.has(i)} className="btn text-xs disabled:cursor-not-allowed disabled:opacity-60">
+                    {retenues.has(i) ? "✓ Retenue" : "Retenir cette idée"}
+                  </button>
+                  <button
+                    type="submit"
+                    formAction={creerEtPlanifierIdee}
+                    disabled={retenues.has(i)}
+                    className="btn btn-accent text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Planifier tout de suite
+                  </button>
+                </div>
               </form>
             </div>
           ))}

@@ -119,7 +119,7 @@ export async function lancerRecherche(formData: FormData): Promise<LancerRecherc
     }
   }
 
-  revalidatePath("/s-inspirer");
+  revalidatePath("/conception");
   return { ok: true, searchIds };
 }
 
@@ -155,7 +155,7 @@ export async function relancerRecherche(searchId: number, confirmer = false): Pr
         apifyDatasetId: datasetId,
       })
       .returning();
-    revalidatePath("/s-inspirer");
+    revalidatePath("/conception");
     return { ok: true, searchIds: [row.id] };
   } catch (e) {
     console.error("[apify] relance échouée", e);
@@ -180,7 +180,7 @@ export async function creerMoodboard(formData: FormData): Promise<{ ok: true; id
     .insert(moodboards)
     .values({ name: parsed.data.name, accountId: parsed.data.accountId ?? null, theme: parsed.data.theme })
     .returning();
-  revalidatePath("/s-inspirer");
+  revalidatePath("/conception");
   revalidatePath("/s-inspirer/moodboards");
   return { ok: true, id: row.id };
 }
@@ -217,7 +217,7 @@ export async function epinglerItem(
     .update(inspirationItems)
     .set({ pinnedBoardId: moodboardId, ...(blobThumbUrl ? { blobThumbUrl } : {}) })
     .where(eq(inspirationItems.id, itemId));
-  revalidatePath("/s-inspirer");
+  revalidatePath("/conception");
   revalidatePath("/s-inspirer/moodboards");
   return { ok: true };
 }
