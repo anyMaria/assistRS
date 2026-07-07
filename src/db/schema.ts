@@ -129,6 +129,109 @@ export const colorRules = sqliteTable("color_rules", {
   label: text("label").default(""),
 });
 
+// Une recherche d'inspiration lancée sur une source (Pinterest, Instagram…)
+export const inspirationSearches = sqliteTable("inspiration_searches", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  theme: text("theme").notNull(),
+  normalizedTheme: text("normalized_theme").notNull(), // sans accents, mots-clés — clé de cache
+  accountId: integer("account_id").references(() => accounts.id, { onDelete: "set null" }),
+  source: text("source").notNull(), // pinterest | instagram | linkedin | facebook | metaAds
+  periode: text("periode").notNull().default("toutes"),
+  tri: text("tri").notNull().default("recent"),
+  maxItems: integer("max_items").notNull().default(30),
+  status: text("status").notNull().default("en_cours"), // en_cours | termine | erreur
+  apifyRunId: text("apify_run_id"),
+  apifyDatasetId: text("apify_dataset_id"),
+  costCents: integer("cost_cents").notNull().default(0),
+  errorMessage: text("error_message"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Un visuel d'inspiration ramené par une recherche
+export const inspirationItems = sqliteTable("inspiration_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  searchId: integer("search_id")
+    .notNull()
+    .references(() => inspirationSearches.id, { onDelete: "cascade" }),
+  source: text("source").notNull(),
+  imageUrl: text("image_url").notNull(),
+  blobThumbUrl: text("blob_thumb_url"), // copie pérenne (les URLs scrapées expirent)
+  author: text("author").default(""),
+  postedAt: integer("posted_at", { mode: "timestamp" }),
+  metrics: text("metrics").notNull().default("{}"), // JSON, signaux propres à la source
+  originalUrl: text("original_url").default(""),
+  pinnedBoardId: integer("pinned_board_id").references(() => moodboards.id, {
+    onDelete: "set null",
+  }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Moodboard : par marque, ou libre/thématique (accountId nul)
+export const moodboards = sqliteTable("moodboards", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").references(() => accounts.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  theme: text("theme").default(""),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Suivi des coûts des API externes (budget ~5 €/mois)
+export const apiUsage = sqliteTable("api_usage", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  service: text("service").notNull(), // apify | gemini | resend
+  action: text("action").notNull(),
+  costCents: integer("cost_cents").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Étape de la checklist de production d'une publication (5 par publication).
+export const productionSteps = sqliteTable("production_steps", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  publicationId: integer("publication_id")
+    .notNull()
+    .references(() => publications.id, { onDelete: "cascade" }),
+  key: text("key").notNull(), // brief | maquette | envoye | valide | programme
+  done: integer("done", { mode: "boolean" }).notNull().default(false),
+  doneAt: integer("done_at", { mode: "timestamp" }),
+});
+
+// Publication récurrente : génère automatiquement les occurrences à venir.
+export const recurrences = sqliteTable("recurrences", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(),
+  format: text("format").notNull(),
+  titlePattern: text("title_pattern").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0 = lundi … 6 = dimanche (cohérent avec time_slots)
+  hour: integer("hour").notNull(),
+  freq: text("freq").notNull().default("hebdo"), // hebdo | mensuel
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  lastGeneratedUntil: integer("last_generated_until", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Token secret révocable pour l'abonnement iCal (Google Calendar / iPhone).
+export const icalTokens = sqliteTable("ical_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  token: text("token").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  revokedAt: integer("revoked_at", { mode: "timestamp" }),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
@@ -138,3 +241,10 @@ export type TimeSlot = typeof timeSlots.$inferSelect;
 export type CsvMapping = typeof csvMappings.$inferSelect;
 export type ViewConfig = typeof viewConfigs.$inferSelect;
 export type ColorRule = typeof colorRules.$inferSelect;
+export type InspirationSearch = typeof inspirationSearches.$inferSelect;
+export type InspirationItem = typeof inspirationItems.$inferSelect;
+export type Moodboard = typeof moodboards.$inferSelect;
+export type ApiUsage = typeof apiUsage.$inferSelect;
+export type ProductionStep = typeof productionSteps.$inferSelect;
+export type Recurrence = typeof recurrences.$inferSelect;
+export type IcalToken = typeof icalTokens.$inferSelect;

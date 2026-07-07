@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, publications, statSnapshots } from "@/db";
+import { insertDefaultSteps } from "@/lib/production-steps";
 
 const pubSchema = z.object({
   accountId: z.coerce.number().int(),
@@ -50,7 +51,30 @@ function revalidateAll() {
 }
 
 export async function createPublication(formData: FormData) {
-  await db.insert(publications).values(parsePubForm(formData));
+  const [pub] = await db.insert(publications).values(parsePubForm(formData)).returning();
+  await insertDefaultSteps(pub.id);
+  revalidateAll();
+}
+
+/** Copie une publication sans dates ni lien externe — titre suffixé « (copie) ». */
+export async function duplicatePublication(id: number) {
+  const [pub] = await db.select().from(publications).where(eq(publications.id, id));
+  if (!pub) return;
+  const [copy] = await db
+    .insert(publications)
+    .values({
+      accountId: pub.accountId,
+      platform: pub.platform,
+      format: pub.format,
+      title: pub.title ? `${pub.title} (copie)` : "(copie)",
+      status: "planifiee",
+      plannedAt: null,
+      publishedAt: null,
+      url: "",
+      ideaId: pub.ideaId,
+    })
+    .returning();
+  await insertDefaultSteps(copy.id);
   revalidateAll();
 }
 
