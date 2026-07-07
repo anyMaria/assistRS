@@ -50,6 +50,17 @@ export default async function DashboardPage() {
       <h1 className="font-display text-4xl italic">Tableau de bord</h1>
       <p className="mt-1 text-ink/60">Vue d&apos;ensemble de tes comptes et des visuels à produire.</p>
 
+      {allAccounts.length > 0 && new Date().getDate() <= 7 && (
+        <div className="card mt-6 flex flex-wrap items-center gap-3 border-accent p-4" style={{ borderColor: "var(--color-accent)" }}>
+          <span aria-hidden className="text-xl">☾</span>
+          <p className="flex-1">
+            <span className="font-semibold">15 min pour préparer le mois</span> — le rituel mensuel
+            propose un calendrier éditorial par marque.
+          </p>
+          <Link href="/rituel" className="btn btn-accent">Démarrer le rituel</Link>
+        </div>
+      )}
+
       {allAccounts.length === 0 ? (
         <div className="card mt-8 p-8 text-center">
           <p className="font-display text-2xl italic">Bienvenue !</p>

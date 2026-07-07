@@ -12,6 +12,8 @@ const items = [
   { href: "/programmation", label: "Horaires", short: "Horaires", icon: "◔" },
   { href: "/statistiques", label: "Statistiques", short: "Stats", icon: "▁▃▅" },
   { href: "/analyse", label: "Analyse", short: "Analyse", icon: "◎" },
+  { href: "/bilan", label: "Bilan", short: "Bilan", icon: "✉" },
+  { href: "/rituel", label: "Rituel mensuel", short: "Rituel", icon: "☾" },
   { href: "/comptes", label: "Comptes", short: "Comptes", icon: "▣" },
   { href: "/parametres", label: "Paramètres", short: "Réglages", icon: "⚙" },
 ];
@@ -56,7 +58,7 @@ export function Nav() {
 
       {/* Barre du bas — mobile (5 entrées principales, le reste via Paramètres) */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 border-t-2 border-ink bg-paper">
-        {["/", "/idees", "/planning", "/statistiques", "/parametres"]
+        {["/", "/bilan", "/planning", "/statistiques", "/parametres"]
           .map((href) => items.find((item) => item.href === href)!)
           .map((item) => (
           <Link

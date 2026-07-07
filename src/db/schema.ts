@@ -232,6 +232,22 @@ export const icalTokens = sqliteTable("ical_tokens", {
   revokedAt: integer("revoked_at", { mode: "timestamp" }),
 });
 
+// Session du rituel mensuel (un par marque et par mois) : réponses au wizard,
+// calendrier proposé par l'IA, et statut de validation.
+export const monthlyRituals = sqliteTable("monthly_rituals", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  month: text("month").notNull(), // "YYYY-MM"
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  answers: text("answers").notNull().default("{}"), // JSON : quoiDeNeuf, promos, evenements, contraintes
+  proposal: text("proposal").notNull().default("[]"), // JSON : { date, plateforme, format, pilier, titre, accroche }[]
+  status: text("status").notNull().default("brouillon"), // brouillon | propose | valide
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type ContentTemplate = typeof contentTemplates.$inferSelect;
 export type Idea = typeof ideas.$inferSelect;
@@ -248,3 +264,4 @@ export type ApiUsage = typeof apiUsage.$inferSelect;
 export type ProductionStep = typeof productionSteps.$inferSelect;
 export type Recurrence = typeof recurrences.$inferSelect;
 export type IcalToken = typeof icalTokens.$inferSelect;
+export type MonthlyRitual = typeof monthlyRituals.$inferSelect;
