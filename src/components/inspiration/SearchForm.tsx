@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SlidersHorizontal } from "lucide-react";
 import type { Account } from "@/db/schema";
 import { lancerRecherche, type LancerRechercheResult } from "@/app/actions/inspiration";
 import { ACTORS, APIFY_SOURCES } from "@/lib/apify";
@@ -20,9 +21,10 @@ const TRIS = [
 
 const initialState: LancerRechercheResult | null = null;
 
+/** En-tête compact (G15) : thème + chips de sources + bouton sur une ligne, marque/période/tri repliés. */
 export function SearchForm({ accounts, defaultTheme }: { accounts: Account[]; defaultTheme: string }) {
   const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [state, formAction, pending] = useActionState(
     async (_prev: LancerRechercheResult | null, formData: FormData) => lancerRecherche(formData),
     initialState,
@@ -35,74 +37,77 @@ export function SearchForm({ accounts, defaultTheme }: { accounts: Account[]; de
   }, [state, router]);
 
   return (
-    <form ref={formRef} action={formAction} className="card space-y-4 p-5">
-      <div className="grid gap-4 md:grid-cols-3">
-        <label className="md:col-span-2">
-          <span className="field-label">Thème *</span>
+    <form action={formAction} className="card space-y-3 p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="min-w-48 flex-1">
+          <span className="sr-only">Thème</span>
           <input
             name="theme"
             required
             defaultValue={defaultTheme}
-            placeholder="branding artisan, coulisses atelier…"
+            placeholder="Thème : branding artisan, coulisses atelier…"
             className="field"
           />
         </label>
-        <label>
-          <span className="field-label">Marque (optionnel)</span>
-          <select name="accountId" defaultValue="" className="field">
-            <option value="">— aucune —</option>
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>{a.name}</option>
-            ))}
-          </select>
-        </label>
-      </div>
 
-      <fieldset>
-        <legend className="field-label">Sources à interroger</legend>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
           {APIFY_SOURCES.map((source) => {
             const meta = ACTORS[source];
             return (
               <label
                 key={source}
-                className="flex cursor-pointer items-start gap-2 border border-line p-3 hover:border-ink"
+                className="tag has-[:checked]:bg-ink has-[:checked]:text-white cursor-pointer whitespace-nowrap"
+                title={meta.costLabel}
               >
-                <input
-                  type="checkbox"
-                  name="sources"
-                  value={source}
-                  defaultChecked={meta.defaultChecked}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="block font-semibold">{meta.label}</span>
-                  <span className="block text-xs text-ink/50">{meta.costLabel}</span>
-                </span>
+                <input type="checkbox" name="sources" value={source} defaultChecked={meta.defaultChecked} className="sr-only" />
+                {meta.label}
               </label>
             );
           })}
         </div>
-      </fieldset>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <label>
-          <span className="field-label">Période</span>
-          <select name="periode" defaultValue="toutes" className="field">
-            {PERIODES.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span className="field-label">Tri</span>
-          <select name="tri" defaultValue="recent" className="field">
-            {TRIS.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-        </label>
+        <button
+          type="button"
+          onClick={() => setOptionsOpen((v) => !v)}
+          className={`btn shrink-0 text-sm ${optionsOpen ? "bg-ink text-white" : ""}`}
+        >
+          <SlidersHorizontal size={14} aria-hidden /> Options
+        </button>
+
+        <button type="submit" className="btn shrink-0" disabled={pending}>
+          {pending ? "Recherche en cours…" : "Rechercher"}
+        </button>
       </div>
+
+      {optionsOpen && (
+        <div className="grid gap-4 border-t border-line pt-3 md:grid-cols-3">
+          <label>
+            <span className="field-label">Marque (optionnel)</span>
+            <select name="accountId" defaultValue="" className="field">
+              <option value="">— aucune —</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="field-label">Période</span>
+            <select name="periode" defaultValue="toutes" className="field">
+              {PERIODES.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="field-label">Tri</span>
+            <select name="tri" defaultValue="recent" className="field">
+              {TRIS.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       {state && !state.ok && (
         <div className="border-2 border-danger bg-white p-4 text-sm">
@@ -116,10 +121,6 @@ export function SearchForm({ accounts, defaultTheme }: { accounts: Account[]; de
           )}
         </div>
       )}
-
-      <button type="submit" className="btn btn-accent" disabled={pending}>
-        {pending ? "Recherche en cours…" : "Lancer la recherche"}
-      </button>
     </form>
   );
 }
