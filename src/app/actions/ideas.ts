@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, ideas, publications } from "@/db";
+import { db, ideas, publications, ideaNotes } from "@/db";
 import { PLATFORMS } from "@/lib/constants";
 
 const ideaSchema = z.object({
@@ -118,4 +118,34 @@ export async function planifierIdee(id: number, formData: FormData) {
   revalidatePath("/conception");
   revalidatePath("/planning");
   revalidatePath("/");
+}
+
+// ——— Pense-bête d'idées (G12) — notes rapides, étape amont d'une vraie idée ———
+
+export async function addIdeaNote(formData: FormData) {
+  const content = formData.get("content")?.toString().trim();
+  if (!content) return;
+  const accountIdRaw = formData.get("accountId")?.toString();
+  await db.insert(ideaNotes).values({
+    content,
+    accountId: accountIdRaw ? Number(accountIdRaw) : null,
+  });
+  revalidatePath("/idees");
+  revalidatePath("/conception");
+}
+
+export async function deleteIdeaNote(id: number) {
+  await db.delete(ideaNotes).where(eq(ideaNotes.id, id));
+  revalidatePath("/idees");
+  revalidatePath("/conception");
+}
+
+/** « → En faire une idée » : crée l'idée à partir du contenu de la note, puis supprime la note. */
+export async function convertNoteToIdea(id: number, formData: FormData) {
+  const [note] = await db.select().from(ideaNotes).where(eq(ideaNotes.id, id));
+  if (!note) return;
+  await createIdea(formData);
+  await db.delete(ideaNotes).where(eq(ideaNotes.id, id));
+  revalidatePath("/idees");
+  revalidatePath("/conception");
 }

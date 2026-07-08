@@ -1,24 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Lightbulb, CalendarDays, BarChart3, Clock } from "lucide-react";
+import { X, Lightbulb, CalendarDays, BarChart3, Clock, StickyNote } from "lucide-react";
 import type { Account, Publication } from "@/db/schema";
 import { IdeaForm } from "@/components/IdeaForm";
 import { PublicationForm } from "@/components/PublicationForm";
 import { SubmitButton } from "@/components/SubmitButton";
-import { createIdea } from "@/app/actions/ideas";
+import { createIdea, addIdeaNote } from "@/app/actions/ideas";
 import { createPublication } from "@/app/actions/publications";
 import { addSnapshot } from "@/app/actions/publications";
 import { createTimeEntry } from "@/app/actions/time-entries";
 import { STAT_FIELDS, platformLabel } from "@/lib/constants";
 
-type Kind = "idee" | "publication" | "releve" | "temps";
+type Kind = "idee" | "publication" | "releve" | "temps" | "note";
 
 const ACTIONS: { kind: Kind; label: string; icon: typeof Lightbulb }[] = [
   { kind: "idee", label: "Nouvelle idée", icon: Lightbulb },
   { kind: "publication", label: "Nouvelle publication", icon: CalendarDays },
   { kind: "releve", label: "Relevé de stats", icon: BarChart3 },
   { kind: "temps", label: "Temps passé", icon: Clock },
+  { kind: "note", label: "Note pense-bête", icon: StickyNote },
 ];
 
 /** Capture rapide : accessible depuis le bouton « Capturer » de la topbar, 4 actions courtes. */
@@ -158,6 +159,25 @@ export function QuickCapture({
                 <div className="md:col-span-3">
                   <SubmitButton label="Enregistrer le temps" />
                 </div>
+              </form>
+            )}
+
+            {activeKind === "note" && (
+              <form action={(fd) => withClose(addIdeaNote, fd)} className="grid gap-4">
+                <label>
+                  <span className="field-label">Note *</span>
+                  <textarea name="content" required rows={3} className="field" placeholder="Une idée en vrac, à retrouver dans le pense-bête d'/idées…" />
+                </label>
+                <label>
+                  <span className="field-label">Marque (optionnel)</span>
+                  <select name="accountId" defaultValue="" className="field">
+                    <option value="">— Générale —</option>
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <SubmitButton label="Noter" />
               </form>
             )}
           </div>

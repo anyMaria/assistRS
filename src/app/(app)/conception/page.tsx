@@ -12,13 +12,24 @@ import {
   inspirationSearches,
   inspirationItems,
   moodboards,
+  ideaNotes,
 } from "@/db";
-import { createIdea, deleteIdea, setIdeaStatus, planifierIdee, duplicateIdea } from "@/app/actions/ideas";
+import {
+  createIdea,
+  deleteIdea,
+  setIdeaStatus,
+  planifierIdee,
+  duplicateIdea,
+  addIdeaNote,
+  deleteIdeaNote,
+  convertNoteToIdea,
+} from "@/app/actions/ideas";
 import { ViewToolbar } from "@/components/dataviews/ViewToolbar";
 import { TableView } from "@/components/dataviews/TableView";
 import { KanbanView } from "@/components/dataviews/KanbanView";
 import { CalendarView } from "@/components/dataviews/CalendarView";
 import { IdeaForm } from "@/components/IdeaForm";
+import { IdeaNotes } from "@/components/IdeaNotes";
 import { PlanifierIdeeForm } from "@/components/PlanifierIdeeForm";
 import { LegendeEditor } from "@/components/LegendeEditor";
 import { RecallCard } from "@/components/RecallCard";
@@ -268,6 +279,7 @@ async function IdeesTab({ vue, mois }: { vue?: string; mois?: string }) {
 
   const allAccounts = await db.select().from(accounts);
   const list = await db.select().from(ideas).orderBy(desc(ideas.createdAt));
+  const notes = await db.select().from(ideaNotes).orderBy(desc(ideaNotes.createdAt));
   const rules = await db.select().from(colorRules);
   const editorials = await db.select().from(brandEditorial);
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
@@ -371,6 +383,15 @@ async function IdeesTab({ vue, mois }: { vue?: string; mois?: string }) {
         </p>
       ) : (
         <>
+          <IdeaNotes
+            notes={notes}
+            accounts={allAccounts}
+            pillarsByAccount={pillarsByAccount}
+            addAction={addIdeaNote}
+            deleteAction={deleteIdeaNote}
+            convertAction={convertNoteToIdea}
+          />
+
           <ViewToolbar entity="idees" basePath="/conception" extraParams="&onglet=idees" views={views} activeView={activeView} rules={rules} />
 
           {activeView.type === "table" && (

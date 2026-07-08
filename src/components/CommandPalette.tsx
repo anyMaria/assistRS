@@ -11,9 +11,10 @@ const TYPE_LABELS: Record<SearchResult["type"], string> = {
   publication: "Publications",
   moodboard: "Moodboards",
   modele: "Modèles",
+  note: "Pense-bête",
 };
 
-const TYPE_ORDER: SearchResult["type"][] = ["marque", "idee", "publication", "moodboard", "modele"];
+const TYPE_ORDER: SearchResult["type"][] = ["marque", "idee", "publication", "moodboard", "modele", "note"];
 
 function groupResults(results: SearchResult[]) {
   const groups = TYPE_ORDER.map((type) => ({

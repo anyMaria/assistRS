@@ -10,10 +10,15 @@ export function IdeaForm({
   accounts,
   pillarsByAccount,
   action,
+  defaultTitle = "",
+  defaultContent = "",
 }: {
   accounts: Account[];
   pillarsByAccount: Record<number, string[]>;
   action: (formData: FormData) => Promise<void>;
+  /** Pré-remplissage venu d'une note pense-bête convertie en idée (G12). */
+  defaultTitle?: string;
+  defaultContent?: string;
 }) {
   const [accountId, setAccountId] = useState<number>(accounts[0]?.id ?? 0);
   const [format, setFormat] = useState("post");
@@ -37,7 +42,7 @@ export function IdeaForm({
       </label>
       <label className="md:col-span-2">
         <span className="field-label">Titre *</span>
-        <input name="title" required className="field" placeholder="Carrousel : 5 erreurs à éviter" />
+        <input name="title" required defaultValue={defaultTitle} className="field" placeholder="Carrousel : 5 erreurs à éviter" />
       </label>
 
       <label>
@@ -93,7 +98,7 @@ export function IdeaForm({
       </label>
       <label className="md:col-span-3">
         <span className="field-label">Structure / notes</span>
-        <textarea name="content" rows={2} className="field" placeholder="Accroche, plan, CTA…" />
+        <textarea name="content" rows={2} defaultValue={defaultContent} className="field" placeholder="Accroche, plan, CTA…" />
       </label>
       <div className="md:col-span-3">
         <SubmitButton label="Ajouter l'idée" />

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { like, or } from "drizzle-orm";
-import { db, accounts, ideas, publications, moodboards, contentTemplates } from "@/db";
+import { db, accounts, ideas, publications, moodboards, contentTemplates, ideaNotes } from "@/db";
 
 export type SearchResult = {
-  type: "marque" | "idee" | "publication" | "moodboard" | "modele";
+  type: "marque" | "idee" | "publication" | "moodboard" | "modele" | "note";
   id: number;
   label: string;
   meta?: string;
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const needle = `%${q}%`;
 
   try {
-    const [matchAccounts, matchIdeas, matchPublications, matchMoodboards, matchTemplates] =
+    const [matchAccounts, matchIdeas, matchPublications, matchMoodboards, matchTemplates, matchNotes] =
       await Promise.all([
         db.select().from(accounts).where(like(accounts.name, needle)).limit(LIMIT),
         db
@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
         db.select().from(publications).where(like(publications.title, needle)).limit(LIMIT),
         db.select().from(moodboards).where(like(moodboards.name, needle)).limit(LIMIT),
         db.select().from(contentTemplates).where(like(contentTemplates.title, needle)).limit(LIMIT),
+        db.select().from(ideaNotes).where(like(ideaNotes.content, needle)).limit(LIMIT),
       ]);
 
     const results: SearchResult[] = [
@@ -68,6 +69,12 @@ export async function GET(req: NextRequest) {
         label: t.title,
         meta: t.format,
         href: `/conception?onglet=creer`,
+      })),
+      ...matchNotes.map((n) => ({
+        type: "note" as const,
+        id: n.id,
+        label: n.content,
+        href: `/conception?onglet=idees`,
       })),
     ];
 
