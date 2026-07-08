@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Sparkles, Pencil, CalendarDays, BarChart3, Plus } from "lucide-react";
+import { Sparkles, Pencil, Plus } from "lucide-react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { desc, inArray } from "drizzle-orm";
 import { db, accounts, publications, statSnapshots, productionSteps, goals, ideas } from "@/db";
 import { aggregate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
+import { buildGlobalTrend, buildEngagementSeries } from "@/lib/mesurer-charts";
 import {
   computeVisualDeadline,
   deadlineStatus,
@@ -69,6 +70,8 @@ export default async function DashboardPage() {
     globalEngagementRate: globalAgg.engagementRate,
     globalReach: globalAgg.reach,
   };
+  const globalTrend = buildGlobalTrend(snaps, 90);
+  const globalEngagementSeries = buildEngagementSeries(pubs, snaps, "90j");
 
   // Deadlines visuel des publications planifiées à venir
   const upcoming = pubs
@@ -112,7 +115,7 @@ export default async function DashboardPage() {
         <>
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <GlobalStats data={globalStats} />
+              <GlobalStats data={globalStats} trend={globalTrend} engagementSeries={globalEngagementSeries} />
             </div>
             <div className="lg:col-span-1 lg:row-span-1">
               <ChatbotWidget />
@@ -325,14 +328,6 @@ export default async function DashboardPage() {
                 );
               })}
             </div>
-          </section>
-
-          {/* Raccourcis */}
-          <section className="mt-10 flex flex-wrap gap-3">
-            <Link href="/mesurer" className="btn"><Plus size={16} aria-hidden /> Saisir des stats</Link>
-            <Link href="/conception?onglet=creer" className="btn"><Pencil size={16} aria-hidden /> Trouver une idée</Link>
-            <Link href="/planning" className="btn"><CalendarDays size={16} aria-hidden /> Planifier</Link>
-            <Link href="/bilan?onglet=mois" className="btn btn-accent"><BarChart3 size={16} aria-hidden /> Analyser</Link>
           </section>
         </>
       )}

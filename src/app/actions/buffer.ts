@@ -3,6 +3,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db, publications, accounts, publicationAssets } from "@/db";
 import { listChannels, createPost, type BufferPostType } from "@/lib/buffer";
+import { synchroniserStatsBuffer } from "@/lib/buffer-sync";
 import { logUsage } from "@/lib/api-usage";
 import { platformLabel } from "@/lib/constants";
 import { revalidatePath } from "next/cache";
@@ -88,4 +89,22 @@ export async function envoyerSemaineSurBuffer(ids: number[]): Promise<LigneRappo
   }
   revalidatePath("/planning");
   return rapport;
+}
+
+export type SynchroBufferResult = { ok: true; created: number } | { ok: false; error: string };
+
+/** Synchro manuelle depuis le bouton « Synchroniser Buffer » de /mesurer (G11 §2). */
+export async function synchroniserStatsBufferAction(): Promise<SynchroBufferResult> {
+  if (!process.env.BUFFER_ACCESS_TOKEN) {
+    return { ok: false, error: "Buffer n'est pas configuré (BUFFER_ACCESS_TOKEN manquante)." };
+  }
+  try {
+    const { created } = await synchroniserStatsBuffer();
+    revalidatePath("/mesurer");
+    revalidatePath("/");
+    return { ok: true, created };
+  } catch (e) {
+    console.error("[buffer-sync] synchro manuelle échouée", e);
+    return { ok: false, error: "La synchro Buffer est indisponible pour l'instant. Réessaie dans quelques minutes." };
+  }
 }

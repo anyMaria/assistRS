@@ -256,3 +256,10 @@ export async function deleteSnapshot(id: number) {
   revalidatePath("/mesurer");
   revalidatePath("/bilan");
 }
+
+/** Rattachage manuel d'un post Buffer (G11 §1) — pour l'historique, publications envoyées avant G14. */
+export async function rattacherBufferPostId(id: number, formData: FormData) {
+  const value = formData.get("bufferPostId")?.toString().trim() || null;
+  await db.update(publications).set({ bufferPostId: value }).where(eq(publications.id, id));
+  revalidatePath("/mesurer");
+}

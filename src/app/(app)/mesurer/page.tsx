@@ -1,14 +1,18 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Link2 } from "lucide-react";
 import { desc, eq } from "drizzle-orm";
 import { db, accounts, publications, statSnapshots } from "@/db";
-import { createPublication, deletePublication } from "@/app/actions/publications";
+import { createPublication, deletePublication, rattacherBufferPostId } from "@/app/actions/publications";
 import { PublicationForm } from "@/components/PublicationForm";
 import { SnapshotForm } from "@/components/SnapshotForm";
 import { FormDialog } from "@/components/FormDialog";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { SyncBufferButton } from "@/components/SyncBufferButton";
+import { EngagementChart } from "@/components/charts/EngagementChart";
+import { MetricBarChart } from "@/components/charts/MetricBarChart";
 import { aggregate, engagementRate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
+import { buildEngagementSeries, buildMetricSeries, PERIODS } from "@/lib/mesurer-charts";
 import {
   PLATFORMS,
   platformLabel,
@@ -20,13 +24,21 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const BAR_METRICS = [
+  { value: "reach", label: "Portée" },
+  { value: "followersGained", label: "Abonnés gagnés" },
+] as const;
+
 export default async function MesurerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ compte?: string; plateforme?: string }>;
+  searchParams: Promise<{ compte?: string; plateforme?: string; periode?: string; metrique?: string }>;
 }) {
-  const { compte, plateforme } = await searchParams;
+  const { compte, plateforme, periode, metrique } = await searchParams;
   const accountId = compte ? Number(compte) : null;
+  const period = PERIODS.some((p) => p.value === periode) ? periode! : "90j";
+  const barMetric = BAR_METRICS.some((m) => m.value === metrique) ? (metrique as "reach" | "followersGained") : "reach";
+  const filterQs = `compte=${compte ?? ""}&plateforme=${plateforme ?? ""}`;
 
   const allAccounts = await db.select().from(accounts);
   const accountPubs = await db
@@ -38,6 +50,9 @@ export default async function MesurerPage({
   const snaps = await db.select().from(statSnapshots).orderBy(desc(statSnapshots.recordedAt));
   const latest = latestSnapshots(snaps);
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
+
+  const engagementSeries = buildEngagementSeries(pubs, snaps, period);
+  const barSeries = buildMetricSeries(pubs, snaps, period, barMetric);
 
   // Vue d'ensemble par marque : agrégat global puis détail par plateforme.
   const overview =
@@ -62,16 +77,19 @@ export default async function MesurerPage({
     <div>
       <SectionHeader
         title="Mesurer"
-        subtitle="Saisis les stats de tes publications — plusieurs relevés possibles, les KPI se calculent tout seuls."
+        subtitle="Stats synchronisées depuis Buffer, saisie manuelle en repli."
         action={
           allAccounts.length > 0 && (
-            <FormDialog trigger={<><Plus size={16} aria-hidden /> Nouvelle publication</>} title="Nouvelle publication">
-              <PublicationForm
-                accounts={allAccounts}
-                action={createPublication}
-                submitLabel="Ajouter la publication"
-              />
-            </FormDialog>
+            <div className="flex flex-wrap items-center gap-2">
+              <SyncBufferButton />
+              <FormDialog trigger={<><Plus size={16} aria-hidden /> Nouvelle publication</>} title="Nouvelle publication">
+                <PublicationForm
+                  accounts={allAccounts}
+                  action={createPublication}
+                  submitLabel="Ajouter la publication"
+                />
+              </FormDialog>
+            </div>
           )
         }
       />
@@ -82,20 +100,58 @@ export default async function MesurerPage({
         </p>
       ) : (
         <>
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Link href="/mesurer" className={`btn ${!accountId ? "bg-ink text-white" : ""}`}>
-              Tous
-            </Link>
-            {allAccounts.map((a) => (
-              <Link
-                key={a.id}
-                href={`/mesurer?compte=${a.id}`}
-                className={`btn ${accountId === a.id ? "bg-ink text-white" : ""}`}
-              >
-                <span className="h-3 w-3 border border-current" style={{ backgroundColor: a.color }} />
-                {a.name}
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Link href="/mesurer" className={`btn ${!accountId ? "bg-ink text-white" : ""}`}>
+                Tous
               </Link>
-            ))}
+              {allAccounts.map((a) => (
+                <Link
+                  key={a.id}
+                  href={`/mesurer?compte=${a.id}`}
+                  className={`btn ${accountId === a.id ? "bg-ink text-white" : ""}`}
+                >
+                  <span className="brand-chip" style={{ backgroundColor: a.color }} />
+                  {a.name}
+                </Link>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              {PERIODS.map((p) => (
+                <Link
+                  key={p.value}
+                  href={`/mesurer?${filterQs}&periode=${p.value}&metrique=${barMetric}`}
+                  className={`btn text-sm ${period === p.value ? "bg-ink text-white" : ""}`}
+                >
+                  {p.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Graphiques */}
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="card p-4">
+              <p className="field-label">Taux d&apos;engagement</p>
+              <EngagementChart data={engagementSeries} />
+            </div>
+            <div className="card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="field-label mb-0">{BAR_METRICS.find((m) => m.value === barMetric)?.label}</p>
+                <div className="flex gap-1">
+                  {BAR_METRICS.map((m) => (
+                    <Link
+                      key={m.value}
+                      href={`/mesurer?${filterQs}&periode=${period}&metrique=${m.value}`}
+                      className={`btn px-2 py-1 text-xs ${barMetric === m.value ? "bg-ink text-white" : ""}`}
+                    >
+                      {m.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <MetricBarChart data={barSeries} />
+            </div>
           </div>
 
           {overview && (
@@ -178,6 +234,7 @@ export default async function MesurerPage({
                       {formatDateTime(pub.publishedAt ?? pub.plannedAt)}
                     </span>
                     <span className="ml-auto text-sm">
+                      {pub.bufferPostId && <span className="tag mr-2 text-xs">Buffer</span>}
                       {snap ? (
                         <>
                           <strong>{formatRate(rate)}</strong> engagement ·{" "}
@@ -189,8 +246,23 @@ export default async function MesurerPage({
                     </span>
                   </summary>
                   <div className="space-y-5 border-t border-line p-5">
+                    {pub.status === "publiee" && !pub.bufferPostId && (
+                      <div>
+                        <h3 className="field-label">Rattacher un post Buffer (optionnel)</h3>
+                        <form action={rattacherBufferPostId.bind(null, pub.id)} className="flex flex-wrap gap-2">
+                          <input
+                            name="bufferPostId"
+                            className="field flex-1"
+                            placeholder="ID du post Buffer — pour synchroniser ses stats"
+                          />
+                          <button type="submit" className="btn text-sm">
+                            <Link2 size={14} aria-hidden /> Rattacher
+                          </button>
+                        </form>
+                      </div>
+                    )}
                     <div>
-                      <h3 className="field-label">Nouveau relevé</h3>
+                      <h3 className="field-label">Nouveau relevé manuel</h3>
                       <SnapshotForm publicationId={pub.id} />
                     </div>
                     {pubSnaps.length > 0 && (

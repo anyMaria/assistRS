@@ -5,6 +5,7 @@ import { sendEmail, emailShell } from "@/lib/email";
 import { rattraperRecherchesBloquees } from "@/lib/inspiration-ingest";
 import { preChaufferSuggestions } from "@/lib/inspiration-preheat";
 import { purgerAssetsExpires } from "@/app/actions/publications";
+import { synchroniserStatsBuffer } from "@/lib/buffer-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,14 @@ export async function GET(req: Request) {
   } catch (e) {
     console.error("[cron] purge des visuels échouée", e);
     result.assetsPurges = 0;
+  }
+
+  try {
+    const sync = await synchroniserStatsBuffer();
+    result.statsBufferSynchronisees = sync.created;
+  } catch (e) {
+    console.error("[cron] synchro des stats Buffer échouée", e);
+    result.statsBufferSynchronisees = 0;
   }
 
   if (isMonday) {
