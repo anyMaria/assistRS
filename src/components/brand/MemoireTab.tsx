@@ -1,6 +1,7 @@
 import type { BrandMemoryRule } from "@/db/schema";
 import { formatDate } from "@/lib/constants";
 import { SubmitButton } from "@/components/SubmitButton";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 
 export function MemoireTab({
   rules,
@@ -32,11 +33,7 @@ export function MemoireTab({
                 {r.active ? "Désactiver" : "Activer"}
               </button>
             </form>
-            <form action={deleteAction.bind(null, r.id)}>
-              <button type="submit" className="text-xs font-semibold text-danger underline underline-offset-2">
-                Supprimer
-              </button>
-            </form>
+            <ConfirmDeleteButton action={deleteAction.bind(null, r.id)} confirmMessage="Supprimer cette règle ?" />
           </div>
         ))}
       </div>

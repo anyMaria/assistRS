@@ -21,6 +21,7 @@ import {
 } from "@/app/actions/brand";
 import { deleteAccountAndRedirect } from "@/app/actions/accounts";
 import { SectionHeader } from "@/components/SectionHeader";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { ContexteTab } from "@/components/brand/ContexteTab";
 import { IdentiteTab } from "@/components/brand/IdentiteTab";
 import { EditorialTab } from "@/components/brand/EditorialTab";
@@ -111,11 +112,13 @@ export default async function MarqueDetailPage({
       )}
 
       <div className="mt-10 border-t border-line pt-4">
-        <form action={deleteAccountAndRedirect.bind(null, accountId)}>
-          <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">
-            Supprimer cette marque (et ses publications)
-          </button>
-        </form>
+        <ConfirmDeleteButton
+          action={deleteAccountAndRedirect.bind(null, accountId)}
+          confirmMessage={`Supprimer « ${account.name} » et toutes ses publications ?`}
+          className="btn text-sm text-danger"
+        >
+          Supprimer cette marque (et ses publications)
+        </ConfirmDeleteButton>
       </div>
     </div>
   );

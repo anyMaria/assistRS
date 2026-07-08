@@ -26,6 +26,8 @@ import { BufferButton } from "@/components/BufferButton";
 import { EnvoyerSemaineButton, type SemaineCandidate } from "@/components/EnvoyerSemaineButton";
 import { FormDialog } from "@/components/FormDialog";
 import { SectionHeader } from "@/components/SectionHeader";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { DuplicateButton } from "@/components/DuplicateButton";
 import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import type { RuleRow } from "@/lib/color-rules";
@@ -442,17 +444,9 @@ export default async function PlanningPage({
                             {pub.status === "planifiee" ? "Marquer publiée" : "Repasser planifiée"}
                           </button>
                         </form>
-                        <div className="flex gap-3">
-                          <form action={bindDuplicate}>
-                            <button type="submit" className="font-semibold text-ink/60 underline underline-offset-2">
-                              Dupliquer
-                            </button>
-                          </form>
-                          <form action={bindDelete}>
-                            <button type="submit" className="font-semibold text-danger underline underline-offset-2">
-                              Supprimer
-                            </button>
-                          </form>
+                        <div className="flex gap-2">
+                          <DuplicateButton action={bindDuplicate} />
+                          <ConfirmDeleteButton action={bindDelete} confirmMessage="Supprimer cette publication ?" />
                         </div>
                       </div>
                     );

@@ -312,7 +312,7 @@ export default async function DashboardPage() {
                               {formatGoalValue(g.metric, current)} / {formatGoalValue(g.metric, g.target)}
                             </span>
                           </div>
-                          <div className="mt-1 h-2 w-full border border-ink bg-white">
+                          <div className="mt-1 h-2 w-full border border-line bg-white">
                             <div
                               className="h-full bg-accent transition-[width] duration-500"
                               style={{ width: `${Math.round(ratio * 100)}%` }}

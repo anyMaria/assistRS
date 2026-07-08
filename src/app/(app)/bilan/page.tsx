@@ -18,6 +18,7 @@ import { currentMonth } from "@/lib/rituel-calendar";
 import { RitualWizard } from "@/components/RitualWizard";
 import { FormDialog } from "@/components/FormDialog";
 import { SectionHeader } from "@/components/SectionHeader";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { buildBilanData } from "@/lib/bilan";
 import { latestSnapshots } from "@/lib/kpi";
 import { computeGoalProgress, formatGoalValue } from "@/lib/goals";
@@ -301,11 +302,7 @@ async function MoisTab({ compte }: { compte?: string }) {
                     <span className="ml-auto text-sm font-semibold">
                       {formatGoalValue(g.metric, current)} / {formatGoalValue(g.metric, g.target)}
                     </span>
-                    <form action={remove}>
-                      <button type="submit" className="text-xs font-semibold text-danger underline underline-offset-2">
-                        Supprimer
-                      </button>
-                    </form>
+                    <ConfirmDeleteButton action={remove} confirmMessage="Supprimer cet objectif ?" />
                   </div>
                   <div className="mt-2 h-3 w-full border border-line bg-white">
                     <div
@@ -350,11 +347,7 @@ async function MoisTab({ compte }: { compte?: string }) {
                   <span className="font-semibold">{formatMinutes(e.minutes)}</span>
                   <span className="text-ink/50">{e.note}</span>
                   <span className="ml-auto text-ink/40">{formatDate(e.date)}</span>
-                  <form action={remove}>
-                    <button type="submit" className="text-xs font-semibold text-danger underline underline-offset-2">
-                      Supprimer
-                    </button>
-                  </form>
+                  <ConfirmDeleteButton action={remove} confirmMessage="Supprimer cette saisie de temps ?" />
                 </li>
               );
             })}

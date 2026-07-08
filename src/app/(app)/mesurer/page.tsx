@@ -7,6 +7,7 @@ import { PublicationForm } from "@/components/PublicationForm";
 import { SnapshotForm } from "@/components/SnapshotForm";
 import { FormDialog } from "@/components/FormDialog";
 import { SectionHeader } from "@/components/SectionHeader";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { aggregate, engagementRate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
 import {
   PLATFORMS,
@@ -231,14 +232,13 @@ export default async function MesurerPage({
                         </table>
                       </div>
                     )}
-                    <form action={remove}>
-                      <button
-                        type="submit"
-                        className="text-sm font-semibold text-danger underline underline-offset-2"
-                      >
-                        Supprimer cette publication
-                      </button>
-                    </form>
+                    <ConfirmDeleteButton
+                      action={remove}
+                      confirmMessage="Supprimer cette publication et ses relevés ?"
+                      className="btn text-sm text-danger"
+                    >
+                      Supprimer cette publication
+                    </ConfirmDeleteButton>
                   </div>
                 </details>
               );

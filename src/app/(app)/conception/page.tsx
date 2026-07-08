@@ -26,6 +26,8 @@ import { IdeaGeneratorForm } from "@/components/IdeaGeneratorForm";
 import { FormatsReference } from "@/components/FormatsReference";
 import { FormDialog } from "@/components/FormDialog";
 import { SectionHeader } from "@/components/SectionHeader";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { DuplicateButton } from "@/components/DuplicateButton";
 import { SearchForm } from "@/components/inspiration/SearchForm";
 import { BudgetBar } from "@/components/inspiration/BudgetBar";
 import { PollStatus } from "@/components/inspiration/PollStatus";
@@ -413,13 +415,9 @@ async function IdeesTab({ vue, mois }: { vue?: string; mois?: string }) {
                 const bindDuplicate = duplicateIdea.bind(null, idea.id);
                 const bindDelete = deleteIdea.bind(null, idea.id);
                 return (
-                  <div className="flex gap-3 text-xs">
-                    <form action={bindDuplicate}>
-                      <button type="submit" className="font-semibold text-ink/60 underline underline-offset-2">Dupliquer</button>
-                    </form>
-                    <form action={bindDelete}>
-                      <button type="submit" className="font-semibold text-danger underline underline-offset-2">Supprimer</button>
-                    </form>
+                  <div className="flex gap-2">
+                    <DuplicateButton action={bindDuplicate} />
+                    <ConfirmDeleteButton action={bindDelete} confirmMessage="Supprimer cette idée ?" />
                   </div>
                 );
               }}

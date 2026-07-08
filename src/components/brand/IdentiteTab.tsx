@@ -1,6 +1,7 @@
 import type { BrandAsset, BrandIdentity } from "@/db/schema";
 import { ListEditor } from "@/components/ListEditor";
 import { SubmitButton } from "@/components/SubmitButton";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 
 const ASSET_TYPES = [
   { value: "logo", label: "Logo" },
@@ -124,12 +125,13 @@ export function IdentiteTab({
             <div key={a.id} className="card p-3">
               <p className="tag">{ASSET_TYPES.find((t) => t.value === a.type)?.label ?? a.type}</p>
               <p className="mt-1 truncate text-sm font-semibold">{a.name || "Sans nom"}</p>
-              <form action={deleteAssetAction} className="mt-2">
-                <input type="hidden" name="id" value={a.id} />
-                <button type="submit" className="text-xs font-semibold text-danger underline underline-offset-2">
-                  Supprimer
-                </button>
-              </form>
+              <div className="mt-2">
+                <ConfirmDeleteButton
+                  action={deleteAssetAction}
+                  hiddenFields={{ id: a.id }}
+                  confirmMessage="Supprimer cet asset ?"
+                />
+              </div>
             </div>
           ))}
         </div>
