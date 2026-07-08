@@ -21,7 +21,7 @@ export function HourMarker({ label, color }: { label: string; color: string }) {
         ●
       </button>
       {open && (
-        <span className="absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 whitespace-nowrap border-2 border-ink bg-paper px-1.5 py-0.5 text-[10px] font-semibold shadow-[2px_2px_0_#1C1917]">
+        <span className="absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 whitespace-nowrap border border-line bg-paper px-1.5 py-0.5 text-[10px] font-semibold">
           {label}
         </span>
       )}

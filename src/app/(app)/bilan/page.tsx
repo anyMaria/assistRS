@@ -48,7 +48,7 @@ export default async function BilanPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl italic">Bilan</h1>
+      <h1 className="font-display text-4xl">Bilan</h1>
       <p className="mt-1 text-ink/60">
         Le digest hebdo, tes objectifs du mois et le rituel éditorial — tout au même endroit.
       </p>
@@ -91,7 +91,7 @@ async function SemaineTab() {
                 className="card flex flex-wrap items-center gap-2 p-3"
                 style={{
                   borderLeftWidth: 8,
-                  borderLeftColor: status === "depassee" ? "#7A1512" : status === "proche" ? "#D97706" : (account?.color ?? "#1C1917"),
+                  borderLeftColor: status === "depassee" ? "var(--color-danger)" : status === "proche" ? "var(--color-warn)" : (account?.color ?? "var(--color-ink)"),
                 }}
               >
                 <span className="tag text-white" style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}>
@@ -119,7 +119,7 @@ async function SemaineTab() {
         ) : (
           <ul className="mt-3 space-y-2">
             {toRelaunch.map(({ pub, account, daysSinceSent }) => (
-              <li key={pub.id} className="card flex flex-wrap items-center gap-2 p-3" style={{ borderLeftWidth: 8, borderLeftColor: "#D97706" }}>
+              <li key={pub.id} className="card flex flex-wrap items-center gap-2 p-3" style={{ borderLeftWidth: 8, borderLeftColor: "var(--color-warn)" }}>
                 <span className="tag text-white" style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}>
                   {platformLabel(pub.platform)}
                 </span>
@@ -166,7 +166,7 @@ async function SemaineTab() {
         ) : (
           <ul className="mt-3 space-y-2">
             {highlights.map(({ pub, account, snapshot, rate }) => (
-              <li key={snapshot.id} className="card flex flex-wrap items-center gap-2 p-3" style={{ borderLeftWidth: 8, borderLeftColor: "#3D7C47" }}>
+              <li key={snapshot.id} className="card flex flex-wrap items-center gap-2 p-3" style={{ borderLeftWidth: 8, borderLeftColor: "var(--color-ok)" }}>
                 <span className="tag text-white" style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}>
                   {platformLabel(pub.platform)}
                 </span>
@@ -244,7 +244,7 @@ async function MoisTab({ compte }: { compte?: string }) {
         <h2 className="font-display text-2xl">Objectifs</h2>
         <details className="card mt-3">
           <summary className="cursor-pointer p-4 font-semibold">+ Nouvel objectif</summary>
-          <div className="border-t-2 border-ink p-5">
+          <div className="border-t border-line p-5">
             <form action={createGoal} className="grid gap-4 md:grid-cols-2">
               <input type="hidden" name="accountId" value={account.id} />
               <label>
@@ -305,7 +305,7 @@ async function MoisTab({ compte }: { compte?: string }) {
                       </button>
                     </form>
                   </div>
-                  <div className="mt-2 h-3 w-full border-2 border-ink bg-white">
+                  <div className="mt-2 h-3 w-full border border-line bg-white">
                     <div
                       className="h-full bg-accent transition-[width] duration-500"
                       style={{ width: `${Math.round(ratio * 100)}%` }}

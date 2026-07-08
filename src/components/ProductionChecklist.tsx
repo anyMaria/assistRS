@@ -39,7 +39,7 @@ export function ProductionChecklist({
             className="flex cursor-pointer items-center gap-1.5 text-left text-xs"
           >
             <span
-              className={`flex h-5 w-5 shrink-0 items-center justify-center border-2 border-ink transition-transform duration-150 ${
+              className={`flex h-5 w-5 shrink-0 items-center justify-center border border-line transition-transform duration-150 ${
                 done ? "bg-ink text-white" : "bg-white"
               } ${justToggled === step.key ? "scale-125" : "scale-100"}`}
               aria-hidden

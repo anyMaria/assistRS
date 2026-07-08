@@ -59,13 +59,13 @@ export default async function MarqueDetailPage({
     <div>
       <div className="flex items-center gap-3">
         <span className="h-5 w-5 shrink-0 border border-ink" style={{ backgroundColor: account.color }} />
-        <h1 className="font-display text-4xl italic">{account.name}</h1>
+        <h1 className="font-display text-4xl">{account.name}</h1>
       </div>
       <p className="mt-1 text-ink/60">
         <Link href="/marques" className="underline underline-offset-2">← Toutes les marques</Link>
       </p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-1 border-b-2 border-ink">
+      <div className="mt-6 flex flex-wrap items-center gap-1 border-b border-line">
         {TABS.map((t) => (
           <Link
             key={t.key}
@@ -105,7 +105,7 @@ export default async function MarqueDetailPage({
         />
       )}
 
-      <div className="mt-10 border-t-2 border-ink pt-4">
+      <div className="mt-10 border-t border-line pt-4">
         <form action={deleteAccountAndRedirect.bind(null, accountId)}>
           <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">
             Supprimer cette marque (et ses publications)

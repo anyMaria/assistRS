@@ -5,14 +5,14 @@ import { formatGoalValue } from "@/lib/goals";
 import { goalMetricLabel, platformLabel, formatLabel, formatMinutes, formatMoney } from "@/lib/constants";
 
 const styles = StyleSheet.create({
-  page: { padding: 40, fontFamily: "Helvetica", fontSize: 11, color: "#1C1917" },
+  page: { padding: 40, fontFamily: "Helvetica", fontSize: 11, color: "#0E1116" },
   coverBar: { height: 8, width: "100%" },
   brandName: { fontFamily: "Times-Roman", fontSize: 32, marginTop: 50, marginBottom: 8 },
   month: { fontSize: 14, color: "#57534E" },
   sectionTitle: { fontFamily: "Times-Roman", fontSize: 18, marginTop: 24, marginBottom: 10 },
   row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
   kpiGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
-  kpiBox: { border: "1pt solid #1C1917", padding: 10, width: "48%", marginBottom: 8 },
+  kpiBox: { border: "1pt solid #0E1116", padding: 10, width: "48%", marginBottom: 8 },
   kpiLabel: { fontSize: 9, color: "#78716C" },
   kpiValue: { fontSize: 18, fontFamily: "Helvetica-Bold" },
   delta: { fontSize: 9, marginTop: 2 },
@@ -45,7 +45,7 @@ export function RapportPDF({ data }: { data: MonthlyReportData }) {
             <Text style={styles.kpiLabel}>PORTÉE CUMULÉE</Text>
             <Text style={styles.kpiValue}>{formatNumber(data.currentAgg.reach)}</Text>
             {deltaReach !== null && (
-              <Text style={[styles.delta, { color: deltaReach >= 0 ? "#3D7C47" : "#7A1512" }]}>
+              <Text style={[styles.delta, { color: deltaReach >= 0 ? "#17B26A" : "#E5484D" }]}>
                 {deltaReach >= 0 ? "+" : ""}
                 {deltaReach.toFixed(0)} % vs mois précédent
               </Text>

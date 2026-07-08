@@ -111,7 +111,7 @@ export function CommandPalette() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Rechercher"
-        className="md:hidden fixed right-4 bottom-24 z-40 flex h-12 w-12 items-center justify-center border-2 border-ink bg-white text-lg shadow-[3px_3px_0_var(--color-ink)] cursor-pointer"
+        className="md:hidden fixed right-4 bottom-24 z-40 flex h-12 w-12 items-center justify-center border border-line bg-white text-lg cursor-pointer"
       >
         <span aria-hidden>🔍</span>
       </button>
@@ -127,9 +127,9 @@ export function CommandPalette() {
             aria-modal="true"
             aria-label="Recherche globale"
             onClick={(e) => e.stopPropagation()}
-            className="card w-full max-w-xl shadow-[4px_4px_0_var(--color-ink)]"
+            className="card w-full max-w-xl"
           >
-            <div className="flex items-center gap-2 border-b-2 border-ink px-4 py-3">
+            <div className="flex items-center gap-2 border-b border-line px-4 py-3">
               <span aria-hidden className="text-ink/40">⌘K</span>
               <input
                 ref={inputRef}

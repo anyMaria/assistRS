@@ -27,7 +27,7 @@ export default async function MoodboardsPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl italic">Moodboards</h1>
+      <h1 className="font-display text-4xl">Moodboards</h1>
       <p className="mt-1 text-ink/60">
         Les visuels épinglés depuis S&apos;inspirer, par marque ou par thème.
       </p>
@@ -39,7 +39,7 @@ export default async function MoodboardsPage() {
 
       <details className="card mt-6">
         <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouveau moodboard</summary>
-        <div className="border-t-2 border-ink p-5">
+        <div className="border-t border-line p-5">
           <form action={creerMoodboardAction} className="grid gap-4 md:grid-cols-3">
             <label>
               <span className="field-label">Nom *</span>
@@ -80,7 +80,7 @@ export default async function MoodboardsPage() {
             const account = board.accountId ? accountById.get(board.accountId) : null;
             return (
               <section key={board.id} className="card">
-                <header className="flex flex-wrap items-center gap-3 border-b-2 border-ink p-4">
+                <header className="flex flex-wrap items-center gap-3 border-b border-line p-4">
                   <h2 className="font-display text-2xl">{board.name}</h2>
                   <span className="tag">{account ? account.name : board.theme || "Libre"}</span>
                   <span className="ml-auto text-sm text-ink/50">{boardItems.length} visuel(s)</span>
@@ -100,7 +100,7 @@ export default async function MoodboardsPage() {
                           <img
                             src={src}
                             alt={item.author ? `Visuel de ${item.author}` : "Visuel épinglé"}
-                            className="w-full border-b-2 border-ink"
+                            className="w-full border-b border-line"
                             loading="lazy"
                           />
                           <div className="flex items-center justify-between p-3 text-sm">

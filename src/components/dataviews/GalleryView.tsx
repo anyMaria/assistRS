@@ -13,8 +13,8 @@ export function GalleryView({ cards }: { cards: DataCard[] }) {
           href={card.visualUrl || undefined}
           target={card.visualUrl ? "_blank" : undefined}
           rel={card.visualUrl ? "noreferrer" : undefined}
-          className="card block overflow-hidden transition hover:shadow-[3px_3px_0_#1C1917]"
-          style={{ borderTopWidth: 4, borderTopColor: card.color ?? "#1C1917" }}
+          className="card block overflow-hidden card-hover"
+          style={{ borderTopWidth: 4, borderTopColor: card.color ?? "var(--color-ink)" }}
         >
           <div className="flex aspect-square items-center justify-center bg-paper">
             {card.visualUrl ? (

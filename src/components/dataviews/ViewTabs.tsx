@@ -24,7 +24,7 @@ export function ViewTabs({
   trailing?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b-2 border-ink">
+    <div className="flex flex-wrap items-center gap-1 border-b border-line">
       {views.map((v) => (
         <Link
           key={v.id}

@@ -66,7 +66,7 @@ export function SearchForm({ accounts, defaultTheme }: { accounts: Account[]; de
             return (
               <label
                 key={source}
-                className="flex cursor-pointer items-start gap-2 border-2 border-ink/20 p-3 hover:border-ink"
+                className="flex cursor-pointer items-start gap-2 border border-line p-3 hover:border-ink"
               >
                 <input
                   type="checkbox"

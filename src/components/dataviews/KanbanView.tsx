@@ -35,8 +35,8 @@ function Card({
       className="card cursor-grab touch-none p-3 active:cursor-grabbing"
       style={{
         borderLeftWidth: 6,
-        borderLeftColor: card.color ?? "#1C1917",
-        boxShadow: isDragging ? "3px 3px 0 #1C1917" : undefined,
+        borderLeftColor: card.color ?? "var(--color-ink)",
+        boxShadow: isDragging ? "0 16px 32px -12px rgba(14, 17, 22, 0.35)" : undefined,
         transform: isDragging ? "rotate(2deg)" : undefined,
         opacity: isDragging ? 0.6 : 1,
       }}
@@ -119,7 +119,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`min-w-64 flex-1 border-2 border-ink p-3 transition ${isOver ? "bg-ink/5" : "bg-paper"}`}
+      className={`min-w-64 flex-1 border border-line p-3 transition ${isOver ? "bg-ink/5" : "bg-paper"}`}
     >
       <h3 className="field-label flex items-center justify-between">
         {column.label}

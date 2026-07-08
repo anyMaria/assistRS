@@ -69,7 +69,7 @@ export function QuickCapture({
                   setActiveKind(a.kind);
                   setMenuOpen(false);
                 }}
-                className="btn bg-white shadow-[3px_3px_0_var(--color-ink)] cursor-pointer"
+                className="btn bg-white cursor-pointer"
               >
                 <span aria-hidden>{a.icon}</span>
                 {a.label}
@@ -82,7 +82,7 @@ export function QuickCapture({
           onClick={() => setMenuOpen((o) => !o)}
           aria-label={menuOpen ? "Fermer la capture rapide" : "Capture rapide"}
           aria-expanded={menuOpen}
-          className="flex h-14 w-14 items-center justify-center border-2 border-ink bg-accent text-2xl font-bold text-white shadow-[3px_3px_0_var(--color-ink)] transition hover:bg-[var(--color-accent-dark)] cursor-pointer"
+          className="flex h-14 w-14 items-center justify-center border border-line bg-accent text-2xl font-bold text-white transition hover:bg-[var(--color-accent-dark)] cursor-pointer"
         >
           <span aria-hidden>{menuOpen ? "✕" : "+"}</span>
         </button>
@@ -98,7 +98,7 @@ export function QuickCapture({
             aria-modal="true"
             aria-label={ACTIONS.find((a) => a.kind === activeKind)?.label}
             onClick={(e) => e.stopPropagation()}
-            className="card w-full max-w-2xl max-h-[85vh] overflow-y-auto p-5 shadow-[4px_4px_0_var(--color-ink)]"
+            className="card w-full max-w-2xl max-h-[85vh] overflow-y-auto p-5"
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-2xl">

@@ -24,7 +24,7 @@ export function BudgetBar({ spendCents }: { spendCents: number }) {
           {(spendCents / 100).toFixed(2)} $ / {(BUDGET_MONTHLY_CAP_CENTS / 100).toFixed(2)} $
         </span>
       </div>
-      <div className="mt-2 h-3 w-full border-2 border-ink bg-white">
+      <div className="mt-2 h-3 w-full border border-line bg-white">
         <div
           className="h-full transition-[width] duration-500"
           style={{ width: `${width}%`, backgroundColor: color }}

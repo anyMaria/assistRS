@@ -13,7 +13,7 @@ export const accounts = sqliteTable("accounts", {
   notes: text("notes").default(""),
   // Délai approximatif (en jours) de validation par le client
   validationDelayDays: integer("validation_delay_days").notNull().default(3),
-  color: text("color").notNull().default("#DE2F2C"),
+  color: text("color").notNull().default("#F5352B"),
   // Taux horaire optionnel (en centimes) — valorise le temps passé dans le rapport mensuel.
   hourlyRateCents: integer("hourly_rate_cents"),
   createdAt: integer("created_at", { mode: "timestamp" })

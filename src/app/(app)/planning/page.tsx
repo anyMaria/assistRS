@@ -211,7 +211,7 @@ export default async function PlanningPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl italic">Planning</h1>
+      <h1 className="font-display text-4xl">Planning</h1>
       <p className="mt-1 text-ink/60">
         Publications planifiées et publiées, checklist de production et récurrences.
       </p>
@@ -228,7 +228,7 @@ export default async function PlanningPage({
 
           <details className="card mt-4">
             <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouvelle publication</summary>
-            <div className="border-t-2 border-ink p-5">
+            <div className="border-t border-line p-5">
               <PublicationForm accounts={allAccounts} action={createPublication} submitLabel="Ajouter la publication" />
             </div>
           </details>
@@ -237,7 +237,7 @@ export default async function PlanningPage({
             <summary className="cursor-pointer p-4 font-display text-2xl">
               ⟳ Récurrences ({allRecurrences.length})
             </summary>
-            <div className="space-y-5 border-t-2 border-ink p-5">
+            <div className="space-y-5 border-t border-line p-5">
               <form action={createRecurrence} className="grid gap-4 md:grid-cols-3">
                 <label>
                   <span className="field-label">Marque *</span>
@@ -308,7 +308,7 @@ export default async function PlanningPage({
                     const toggle = toggleRecurrenceActive.bind(null, rec.id);
                     const remove = deleteRecurrence.bind(null, rec.id);
                     return (
-                      <li key={rec.id} className="flex flex-wrap items-center gap-2 border-2 border-ink/20 p-3 text-sm">
+                      <li key={rec.id} className="flex flex-wrap items-center gap-2 border border-line p-3 text-sm">
                         <span className="tag">{platformLabel(rec.platform)}</span>
                         <span className="font-semibold">{rec.titlePattern}</span>
                         <span className="text-ink/50">
@@ -375,7 +375,7 @@ export default async function PlanningPage({
                           </Link>
                         )}
                         {recall && <RecallCard match={recall} />}
-                        <div className="mt-4 border-t-2 border-ink pt-4">
+                        <div className="mt-4 border-t border-line pt-4">
                           <p className="field-label">Visuels</p>
                           <div className="mt-2">
                             {blobConfigured ? (
@@ -388,7 +388,7 @@ export default async function PlanningPage({
                             )}
                           </div>
                         </div>
-                        <div className="mt-4 border-t-2 border-ink pt-4">
+                        <div className="mt-4 border-t border-line pt-4">
                           <p className="field-label">Checklist de production</p>
                           <div className="mt-2">
                             <ProductionChecklist publicationId={pub.id} steps={stepsByPub.get(pub.id) ?? []} />
@@ -404,14 +404,14 @@ export default async function PlanningPage({
                           existingText={pub.caption ?? ""}
                           platformLabel={platformLabel(pub.platform)}
                         />
-                        <div className="mt-4 border-t-2 border-ink pt-4">
+                        <div className="mt-4 border-t border-line pt-4">
                           <p className="field-label">Décliner ce contenu</p>
                           <div className="mt-2">
                             <DeclinerForm currentPlatform={pub.platform} action={declinerPublication.bind(null, pub.id)} />
                           </div>
                         </div>
                         {pub.status === "planifiee" && (
-                          <div className="mt-4 border-t-2 border-ink pt-4">
+                          <div className="mt-4 border-t border-line pt-4">
                             <p className="field-label">Buffer</p>
                             <BufferButton publicationId={pub.id} />
                           </div>

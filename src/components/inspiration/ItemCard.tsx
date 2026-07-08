@@ -36,7 +36,7 @@ export function ItemCard({
       <img
         src={src}
         alt={item.author ? `Visuel d'inspiration de ${item.author}` : "Visuel d'inspiration"}
-        className="w-full border-b-2 border-ink"
+        className="w-full border-b border-line"
         loading="lazy"
       />
       <div className="space-y-2 p-3 text-sm">
@@ -73,7 +73,7 @@ export function ItemCard({
           </button>
         </div>
         {open && (
-          <div className="space-y-2 border-t-2 border-ink pt-2">
+          <div className="space-y-2 border-t border-line pt-2">
             {moodboards.length === 0 && (
               <p className="text-xs text-ink/50">Aucun moodboard — crées-en un ci-dessous.</p>
             )}

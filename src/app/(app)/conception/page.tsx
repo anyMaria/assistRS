@@ -66,7 +66,7 @@ export default async function ConceptionPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl italic">Conception</h1>
+      <h1 className="font-display text-4xl">Conception</h1>
       <p className="mt-1 text-ink/60">Créer des idées, s&apos;inspirer et gérer la bibliothèque d&apos;idées.</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -216,7 +216,7 @@ async function InspirerTab({ recherche }: { recherche?: string }) {
               : allMoodboards;
             return (
               <section key={search.id} className="card">
-                <header className="flex flex-wrap items-center gap-3 border-b-2 border-ink p-4">
+                <header className="flex flex-wrap items-center gap-3 border-b border-line p-4">
                   <span className="tag">{meta.label}</span>
                   <span className="font-semibold">{search.theme}</span>
                   {search.status === "termine" && searchItems.length > 0 && (
@@ -362,7 +362,7 @@ async function IdeesTab({ vue, mois }: { vue?: string; mois?: string }) {
         <>
           <details className="card mt-6">
             <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouvelle idée</summary>
-            <div className="border-t-2 border-ink p-5">
+            <div className="border-t border-line p-5">
               <IdeaForm accounts={allAccounts} pillarsByAccount={pillarsByAccount} action={createIdea} />
             </div>
           </details>

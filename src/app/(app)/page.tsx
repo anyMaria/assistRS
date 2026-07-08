@@ -81,7 +81,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl italic">Tableau de bord</h1>
+      <h1 className="font-display text-4xl">Tableau de bord</h1>
       <p className="mt-1 text-ink/60">Vue d&apos;ensemble de tes comptes et des visuels à produire.</p>
 
       {allAccounts.length > 0 && new Date().getDate() <= 7 && (
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
 
       {allAccounts.length === 0 ? (
         <div className="card mt-8 p-8 text-center">
-          <p className="font-display text-2xl italic">Bienvenue !</p>
+          <p className="font-display text-2xl">Bienvenue !</p>
           <p className="mt-2 text-ink/60">
             Commence par créer ta première marque (toi-même, un client…).
           </p>
@@ -131,7 +131,7 @@ export default async function DashboardPage() {
                     style={{
                       borderLeftWidth: 8,
                       borderLeftColor:
-                        status === "depassee" ? "#7A1512" : status === "proche" ? "#D97706" : (account?.color ?? "#1C1917"),
+                        status === "depassee" ? "var(--color-danger)" : status === "proche" ? "var(--color-warn)" : (account?.color ?? "var(--color-ink)"),
                     }}
                   >
                     <CardModal
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
             ) : (
               <ul className="mt-3 space-y-2">
                 {toRelaunch.map(({ pub, account, daysSinceSent }) => (
-                  <li key={pub.id} className="card flex flex-wrap items-center gap-2 p-3" style={{ borderLeftWidth: 8, borderLeftColor: "#D97706" }}>
+                  <li key={pub.id} className="card flex flex-wrap items-center gap-2 p-3" style={{ borderLeftWidth: 8, borderLeftColor: "var(--color-warn)" }}>
                     <span
                       className="tag text-white"
                       style={{ backgroundColor: platformColor(pub.platform), borderColor: "transparent" }}
@@ -265,7 +265,7 @@ export default async function DashboardPage() {
                   <Link
                     key={account.id}
                     href={`/marques/${account.id}`}
-                    className="card block p-4 transition hover:shadow-[3px_3px_0_#1C1917]"
+                    className="card block p-4 card-hover"
                     style={{ borderTopWidth: 6, borderTopColor: account.color }}
                   >
                     <p className="flex items-center justify-between font-display text-xl">

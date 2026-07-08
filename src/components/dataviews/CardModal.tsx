@@ -58,8 +58,8 @@ export function CardModal({
             onClick={(e) => e.stopPropagation()}
             className="card max-h-[85vh] w-full max-w-lg overflow-y-auto p-5"
           >
-            <div className="flex items-start justify-between gap-4 border-b-2 border-ink pb-3">
-              <h2 className="font-display text-2xl italic">{title}</h2>
+            <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
+              <h2 className="font-display text-2xl">{title}</h2>
               <button
                 type="button"
                 onClick={close}

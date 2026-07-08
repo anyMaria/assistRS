@@ -21,9 +21,9 @@ export function Nav() {
   return (
     <>
       {/* Barre latérale — desktop */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-56 flex-col border-r-2 border-ink bg-paper z-40">
-        <div className="border-b-2 border-ink px-5 py-5">
-          <p className="font-display text-xl italic leading-tight">Trinkets Design</p>
+      <aside className="hidden md:flex fixed inset-y-0 left-0 w-56 flex-col border-r border-line bg-paper z-40">
+        <div className="border-b border-line px-5 py-5">
+          <p className="font-display text-xl leading-tight">Trinkets Design</p>
           <p className="text-[10px] uppercase tracking-[0.25em] text-ink/50">
             Assistant RS
           </p>
@@ -46,13 +46,13 @@ export function Nav() {
             </Link>
           ))}
         </nav>
-        <div className="border-t-2 border-ink px-5 py-3 text-[10px] uppercase tracking-widest text-ink/40">
+        <div className="border-t border-line px-5 py-3 text-[10px] uppercase tracking-widest text-ink/40">
           fait main · {new Date().getFullYear()}
         </div>
       </aside>
 
       {/* Barre du bas — mobile (5 entrées principales, le reste via Paramètres) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 border-t-2 border-ink bg-paper">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 border-t border-line bg-paper">
         {["/", "/conception", "/planning", "/mesurer", "/bilan"]
           .map((href) => items.find((item) => item.href === href)!)
           .map((item) => (

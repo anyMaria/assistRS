@@ -1,15 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Work_Sans } from "next/font/google";
+import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
-  style: ["normal", "italic"],
 });
 
-const workSans = Work_Sans({
-  variable: "--font-worksans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -33,10 +32,20 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#DE2F2C",
+  themeColor: "#F5352B",
   width: "device-width",
   initialScale: 1,
 };
+
+/** Applique la préférence sombre avant le premier rendu — évite un flash clair→sombre. */
+const THEME_INIT_SCRIPT = `
+try {
+  var theme = localStorage.getItem("theme");
+  if (theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+    document.documentElement.classList.add("dark");
+  }
+} catch (e) {}
+`;
 
 export default function RootLayout({
   children,
@@ -44,7 +53,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${fraunces.variable} ${workSans.variable} h-full antialiased`}>
+    <html lang="fr" className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full">{children}</body>
     </html>
   );

@@ -79,7 +79,7 @@ export function IdentiteTab({
         <SubmitButton label="Enregistrer l'identité" />
       </form>
 
-      <section className="border-t-2 border-ink pt-6">
+      <section className="border-t border-line pt-6">
         <h3 className="font-display text-xl">Assets</h3>
         {!blobConfigured ? (
           <p className="card mt-3 border-danger p-4 text-sm text-danger">

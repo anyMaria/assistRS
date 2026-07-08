@@ -128,7 +128,7 @@ export function LegendeEditor({ kind, id, accountId, platform, format, brief, ex
   }
 
   return (
-    <div className="mt-4 border-t-2 border-ink pt-4">
+    <div className="mt-4 border-t border-line pt-4">
       <p className="field-label">Légende</p>
 
       {error && (
@@ -181,7 +181,7 @@ export function LegendeEditor({ kind, id, accountId, platform, format, brief, ex
                     else next.delete(i);
                     setReglesCochees(next);
                   }}
-                  className="mt-1 h-4 w-4 accent-[#1C1917]"
+                  className="mt-1 h-4 w-4 accent-[var(--color-ink)]"
                 />
                 {r}
               </label>

@@ -11,8 +11,8 @@ const SIZES = [
 ];
 
 const ACCOUNT_COLORS = [
-  "#DE2F2C", "#B13589", "#1877F2", "#0A66C2", "#3D7C47",
-  "#D97706", "#6D28D9", "#0F766E", "#1C1917",
+  "var(--color-accent)", "#B13589", "#1877F2", "#0A66C2", "var(--color-ok)",
+  "var(--color-warn)", "#6D28D9", "#0F766E", "var(--color-ink)",
 ];
 
 function parse<T>(json: string | undefined, fallback: T): T {
@@ -66,7 +66,7 @@ export function ContexteTab({
                   name="platforms"
                   value={p.value}
                   defaultChecked={platforms.includes(p.value)}
-                  className="h-4 w-4 accent-[#1C1917]"
+                  className="h-4 w-4 accent-[var(--color-ink)]"
                 />
                 {p.label}
               </label>

@@ -26,11 +26,11 @@ export function TableView({
     <div className="card mt-4 overflow-x-auto border-t-0">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b-2 border-ink text-left">
+          <tr className="border-b border-line text-left">
             <th className="p-3">Titre</th>
             <th className="p-3">Étiquettes</th>
             <th className="p-3">{columnLabel}</th>
-            {planning && <th className="border-l-2 border-ink bg-paper p-3">{planningLabel ?? "Planning"}</th>}
+            {planning && <th className="border-l border-line bg-paper p-3">{planningLabel ?? "Planning"}</th>}
             {actions && <th className="p-3" />}
           </tr>
         </thead>
@@ -89,7 +89,7 @@ export function TableView({
                   {card.columnLabel ?? card.column}
                 </span>
               </td>
-              {planning && <td className="border-l-2 border-ink bg-paper/60 p-3">{planning(card)}</td>}
+              {planning && <td className="border-l border-line bg-paper/60 p-3">{planning(card)}</td>}
               {actions && <td className="p-3">{actions(card)}</td>}
             </tr>
           ))}

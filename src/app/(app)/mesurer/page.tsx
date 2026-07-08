@@ -56,7 +56,7 @@ export default async function MesurerPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl italic">Mesurer</h1>
+      <h1 className="font-display text-4xl">Mesurer</h1>
       <p className="mt-1 text-ink/60">
         Saisis les stats de tes publications — plusieurs relevés possibles, les KPI se
         calculent tout seuls.
@@ -72,7 +72,7 @@ export default async function MesurerPage({
             <summary className="cursor-pointer p-4 font-display text-2xl">
               + Nouvelle publication
             </summary>
-            <div className="border-t-2 border-ink p-5">
+            <div className="border-t border-line p-5">
               <PublicationForm
                 accounts={allAccounts}
                 action={createPublication}
@@ -140,7 +140,7 @@ export default async function MesurerPage({
                         key={platform.value}
                         href={`/mesurer?compte=${accountId}&plateforme=${platform.value}`}
                         className={`btn ${plateforme === platform.value ? "text-white" : ""}`}
-                        style={plateforme === platform.value ? { backgroundColor: platform.color, borderColor: "#1C1917" } : undefined}
+                        style={plateforme === platform.value ? { backgroundColor: platform.color, borderColor: "var(--color-ink)" } : undefined}
                       >
                         {platform.label} · {formatRate(agg.engagementRate)}
                       </Link>
@@ -187,7 +187,7 @@ export default async function MesurerPage({
                       )}
                     </span>
                   </summary>
-                  <div className="space-y-5 border-t-2 border-ink p-5">
+                  <div className="space-y-5 border-t border-line p-5">
                     <div>
                       <h3 className="field-label">Nouveau relevé</h3>
                       <SnapshotForm publicationId={pub.id} />
@@ -197,7 +197,7 @@ export default async function MesurerPage({
                         <h3 className="field-label">Relevés ({pubSnaps.length})</h3>
                         <table className="w-full text-sm">
                           <thead>
-                            <tr className="border-b-2 border-ink text-left">
+                            <tr className="border-b border-line text-left">
                               <th className="py-1 pr-3">Date</th>
                               <th className="py-1 pr-3">Impr.</th>
                               <th className="py-1 pr-3">Portée</th>

@@ -65,7 +65,7 @@ export function AssetUploader({ publicationId, initialAssets }: { publicationId:
       {items.length > 0 && (
         <div className="flex flex-wrap gap-3">
           {items.map((a, i) => (
-            <div key={a.id} className="relative border-2 border-ink">
+            <div key={a.id} className="relative border border-line">
               {/* eslint-disable-next-line @next/next/no-img-element -- visuel Blob public, pas d'optimiseur Next possible */}
               <img src={a.url} alt="" className="h-24 w-24 object-cover" />
               <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-white/90 px-1 text-xs">

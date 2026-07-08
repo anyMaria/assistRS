@@ -37,7 +37,7 @@ export default async function ParametresPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl italic">Paramètres</h1>
+      <h1 className="font-display text-4xl">Paramètres</h1>
       <p className="mt-1 text-ink/60">Horaires de publication, intégrations et export iCal.</p>
 
       {/* ——— Horaires de publication ——— */}
@@ -56,7 +56,7 @@ export default async function ParametresPage({
               className="btn"
               style={
                 platform === p.value
-                  ? { backgroundColor: p.color, color: "white", borderColor: "#1C1917" }
+                  ? { backgroundColor: p.color, color: "white", borderColor: "var(--color-ink)" }
                   : undefined
               }
             >
@@ -81,9 +81,9 @@ export default async function ParametresPage({
           <table className="w-full border-collapse text-center text-xs">
             <thead>
               <tr>
-                <th className="border-b-2 border-r-2 border-ink bg-paper p-2 text-left">Heure</th>
+                <th className="border-b-2 border-r border-line bg-paper p-2 text-left">Heure</th>
                 {DAYS_SHORT.map((d) => (
-                  <th key={d} className="border-b-2 border-ink bg-paper p-2 font-semibold uppercase tracking-wide">
+                  <th key={d} className="border-b border-line bg-paper p-2 font-semibold uppercase tracking-wide">
                     {d}
                   </th>
                 ))}
@@ -92,7 +92,7 @@ export default async function ParametresPage({
             <tbody>
               {HOURS.map((hour) => (
                 <tr key={hour}>
-                  <td className="border-r-2 border-ink/60 border-b border-ink/10 px-2 py-1 text-left font-semibold text-ink/60">
+                  <td className="border-r border-line border-b border-ink/10 px-2 py-1 text-left font-semibold text-ink/60">
                     {hour} h
                   </td>
                   {DAYS_SHORT.map((_, day) => {
@@ -151,7 +151,7 @@ export default async function ParametresPage({
               <span className="font-semibold">{i.label}</span>
               <span
                 className={`tag ${i.configured ? "text-ok" : "text-danger"}`}
-                style={{ borderColor: i.configured ? "#3D7C47" : "#7A1512" }}
+                style={{ borderColor: i.configured ? "var(--color-ok)" : "var(--color-danger)" }}
               >
                 {i.configured ? "✓ configurée" : "⚠ manquante"}
               </span>

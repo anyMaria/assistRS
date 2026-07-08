@@ -1,90 +1,209 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
-@theme {
-  /* Direction « atelier éditorial » : papier chaud, encre, rouge signature #DE2F2C */
-  --color-paper: #f6f2ea;
-  --color-ink: #1c1917;
-  --color-accent: #de2f2c;
-  --color-accent-dark: #b22421; /* survol / états actifs de l'accent */
-  --color-danger: #7a1512; /* distinct de l'accent : toujours accompagné d'une icône/texte */
-  --color-warn: #d97706;
-  --color-ok: #3d7c47;
-  --color-instagram: #b13589;
-  --color-facebook: #1877f2;
-  --color-linkedin: #0a66c2;
+:root {
+  /* Palette moderne / épurée — reprise de la maquette anyMaria/CrErMaquetteSiteWeb */
+  --paper: #f5f6f8;
+  --paper-2: #eceef3;
+  --surface: #ffffff;
+  --ink: #0e1116;
+  --line: #e6e8ef;
+  --accent: #f5352b;
+  --accent-dark: #d62419;
+  --accent-2: #ff6a3d;
+  --accent-soft: #ffe9e7;
+  --gradient-accent: linear-gradient(120deg, #f5352b 0%, #ff6a3d 100%);
+  --danger: #e5484d;
+  --warn: #f5a524;
+  --ok: #17b26a;
+  --instagram: #e1306c;
+  --facebook: #1877f2;
+  --linkedin: #0a66c2;
 
-  --font-display: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-worksans), system-ui, sans-serif;
+  --font-display-raw: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans-raw: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --radius: 0.875rem;
+}
+
+.dark {
+  --paper: #0b0d12;
+  --paper-2: #171a22;
+  --surface: #14171e;
+  --ink: #eef1f6;
+  --line: #262b36;
+  --accent: #ff4a3d;
+  --accent-dark: #e0362b;
+  --accent-2: #ff824f;
+  --accent-soft: #34211e;
+  --gradient-accent: linear-gradient(120deg, #ff4a3d 0%, #ff824f 100%);
+  --danger: #ff6b6b;
+  --warn: #f5a524;
+  --ok: #2dd4a0;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-accent-2: var(--accent-2);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --color-instagram: var(--instagram);
+  --color-facebook: var(--facebook);
+  --color-linkedin: var(--linkedin);
+  --font-display: var(--font-display-raw);
+  --font-sans: var(--font-sans-raw);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans-raw);
+  transition: background 150ms ease, color 150ms ease;
 }
 
 .font-display {
-  font-family: var(--font-display);
+  font-family: var(--font-display-raw);
 }
 
 /* Champs de formulaire denses et tactiles */
 .field {
   width: 100%;
-  border: 2px solid color-mix(in srgb, var(--color-ink) 80%, transparent);
-  background: white;
-  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
+  color: var(--ink);
   outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .field:focus {
-  border-color: var(--color-accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+textarea.field {
+  resize: vertical;
+  min-height: 6rem;
 }
 .field-label {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: color-mix(in srgb, var(--color-ink) 60%, transparent);
-  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  margin-bottom: 0.4rem;
 }
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  border: 2px solid var(--color-ink);
-  background: white;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font-weight: 550;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: all 160ms ease;
+  min-height: 42px;
 }
 .btn:hover {
-  background: var(--color-ink);
-  color: white;
+  background: var(--paper-2);
+  border-color: color-mix(in srgb, var(--ink) 15%, var(--line));
 }
 .btn-accent {
-  background: var(--color-accent);
+  border: 1px solid transparent;
+  background: var(--gradient-accent);
   color: white;
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.btn-accent:hover {
+  filter: brightness(1.05);
+  color: white;
+  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.btn-ghost {
+  border: 1px solid transparent;
+  background: transparent;
+}
+.btn-ghost:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  min-width: 36px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 160ms ease;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+}
+.btn-icon:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+.btn-icon-danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
 }
 .tag {
   display: inline-flex;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--color-ink) 40%, transparent);
-  padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  background: var(--paper-2);
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 550;
+  white-space: nowrap;
 }
 .card {
-  border: 2px solid var(--color-ink);
-  background: white;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(14, 17, 22, 0.04);
+}
+.card-hover {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  cursor: pointer;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--ink) 15%, var(--line));
+  box-shadow: 0 1px 2px rgba(14, 17, 22, 0.04), 0 16px 32px -16px rgba(14, 17, 22, 0.24);
+}
+
+/* Pastille de couleur de marque : carrée arrondie, bord doux */
+.brand-chip {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 0.3rem;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
+  flex: none;
 }
 
 /* Focus clavier visible partout (charte UX/UI) */
 :where(a, button, input, select, textarea, summary):focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 

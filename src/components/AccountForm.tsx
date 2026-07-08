@@ -3,8 +3,8 @@ import { PLATFORMS } from "@/lib/constants";
 import { SubmitButton } from "@/components/SubmitButton";
 
 const ACCOUNT_COLORS = [
-  "#DE2F2C", "#B13589", "#1877F2", "#0A66C2", "#3D7C47",
-  "#D97706", "#6D28D9", "#0F766E", "#1C1917",
+  "#F5352B", "#B13589", "#1877F2", "#0A66C2", "#17B26A",
+  "#F5A524", "#6D28D9", "#0F766E", "#0E1116",
 ];
 
 /** Formulaire compte (création ou édition) — rendu côté serveur, action passée en prop. */
@@ -46,7 +46,7 @@ export function AccountForm({
                 name="platforms"
                 value={p.value}
                 defaultChecked={platforms.includes(p.value)}
-                className="h-4 w-4 accent-[#1C1917]"
+                className="h-4 w-4 accent-[var(--color-ink)]"
               />
               {p.label}
             </label>
@@ -93,7 +93,7 @@ export function AccountForm({
                 type="radio"
                 name="color"
                 value={c}
-                defaultChecked={(account?.color ?? "#DE2F2C") === c}
+                defaultChecked={(account?.color ?? "#F5352B") === c}
                 className="peer sr-only"
               />
               <span

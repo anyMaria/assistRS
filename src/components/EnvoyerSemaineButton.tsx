@@ -72,7 +72,7 @@ export function EnvoyerSemaineButton({ candidates }: { candidates: SemaineCandid
               <>
                 <ul className="mt-4 space-y-2 text-sm">
                   {candidates.map((c) => (
-                    <li key={c.id} className="flex flex-wrap items-center gap-2 border-2 border-ink/20 p-2">
+                    <li key={c.id} className="flex flex-wrap items-center gap-2 border border-line p-2">
                       <span>{c.label}</span>
                       {!c.hasVisual && (
                         <span className="tag text-xs" style={{ borderColor: "var(--color-warn)", color: "var(--color-warn)" }}>
@@ -93,7 +93,7 @@ export function EnvoyerSemaineButton({ candidates }: { candidates: SemaineCandid
               <>
                 <ul className="mt-4 space-y-2 text-sm">
                   {rapport.map((r) => (
-                    <li key={r.id} className="flex items-start gap-2 border-2 border-ink/20 p-2">
+                    <li key={r.id} className="flex items-start gap-2 border border-line p-2">
                       <span className={r.ok ? "font-semibold text-ok" : "font-semibold text-danger"} aria-hidden>
                         {r.ok ? "✓" : "✗"}
                       </span>

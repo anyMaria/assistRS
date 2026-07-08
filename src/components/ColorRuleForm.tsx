@@ -1,7 +1,7 @@
 import { OPERATORS, RULE_FIELDS } from "@/lib/color-rules";
 import { SubmitButton } from "@/components/SubmitButton";
 
-const SWATCHES = ["#7A1512", "#D97706", "#3D7C47", "#0A66C2", "#B13589", "#8A857B", "#1C1917"];
+const SWATCHES = ["#E5484D", "#F5A524", "#17B26A", "#0A66C2", "#B13589", "#8A857B", "#0E1116"];
 
 /** Formulaire de création d'une règle de couleur conditionnelle, pour une entité donnée. */
 export function ColorRuleForm({

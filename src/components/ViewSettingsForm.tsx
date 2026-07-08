@@ -16,7 +16,7 @@ export function ViewSettingsForm({
   const fields = RULE_FIELDS[view.entity] ?? [];
 
   return (
-    <form action={action} className="grid gap-4 border-t-2 border-ink p-4 md:grid-cols-2">
+    <form action={action} className="grid gap-4 border-t border-line p-4 md:grid-cols-2">
       <input type="hidden" name="groupBy" value={settings.groupBy ?? "status"} />
 
       {view.type === "calendrier" && (
@@ -30,7 +30,7 @@ export function ViewSettingsForm({
                   name="displayProps"
                   value={f.value}
                   defaultChecked={settings.displayProps?.includes(f.value) ?? false}
-                  className="h-4 w-4 accent-[#1C1917]"
+                  className="h-4 w-4 accent-[var(--color-ink)]"
                 />
                 {f.label}
               </label>

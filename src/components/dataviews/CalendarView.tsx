@@ -12,9 +12,9 @@ export type CalendarDeadline = {
 };
 
 const DEADLINE_DOT: Record<CalendarDeadline["status"], string> = {
-  depassee: "#7A1512",
-  proche: "#D97706",
-  ok: "#3D7C47",
+  depassee: "var(--color-danger)",
+  proche: "var(--color-warn)",
+  ok: "var(--color-ok)",
 };
 
 function sameDay(a: Date, b: Date) {
@@ -64,7 +64,7 @@ export function CalendarView({
         <Link href={`${basePath}?mois=${fmt(prevMonth)}${extraParams}`} className="btn px-3 py-1">
           ← Mois précédent
         </Link>
-        <p className="font-display text-xl italic">
+        <p className="font-display text-xl">
           {first.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
         </p>
         <Link href={`${basePath}?mois=${fmt(nextMonth)}${extraParams}`} className="btn px-3 py-1">
@@ -74,7 +74,7 @@ export function CalendarView({
 
       <div className="card grid grid-cols-7 overflow-hidden">
         {DAYS_SHORT.map((d) => (
-          <div key={d} className="border-b-2 border-ink bg-paper p-2 text-center text-xs font-semibold uppercase tracking-wide">
+          <div key={d} className="border-b border-line bg-paper p-2 text-center text-xs font-semibold uppercase tracking-wide">
             {d}
           </div>
         ))}
@@ -123,7 +123,7 @@ export function CalendarView({
                         trigger={
                           <div
                             className="border-l-[3px] pl-1"
-                            style={{ borderLeftColor: c.color ?? "#1C1917" }}
+                            style={{ borderLeftColor: c.color ?? "var(--color-ink)" }}
                           >
                             <p className="truncate font-semibold">{c.title}</p>
                             {displayProps.length > 0 && (

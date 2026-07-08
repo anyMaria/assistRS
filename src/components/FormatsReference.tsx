@@ -26,7 +26,7 @@ export function FormatsReference() {
             className="fixed inset-0 z-40 cursor-default"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute left-0 top-full z-50 mt-2 w-80 border-2 border-ink bg-paper p-3 shadow-[3px_3px_0_#1C1917]">
+          <div className="absolute left-0 top-full z-50 mt-2 w-80 border border-line bg-paper p-3">
             <div className="flex items-center justify-between gap-2">
               <p className="field-label">Formats &amp; dimensions</p>
               <button type="button" onClick={() => setOpen(false)} className="text-xs text-ink/50 hover:text-ink">

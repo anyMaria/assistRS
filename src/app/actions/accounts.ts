@@ -14,7 +14,7 @@ const accountSchema = z.object({
   platforms: z.array(z.string()).default([]),
   notes: z.string().default(""),
   validationDelayDays: z.coerce.number().int().min(0).max(60).default(3),
-  color: z.string().default("#DE2F2C"),
+  color: z.string().default("#F5352B"),
   hourlyRate: z.coerce.number().min(0).optional(),
 });
 
@@ -27,7 +27,7 @@ function parseAccountForm(formData: FormData) {
     platforms: formData.getAll("platforms").map(String),
     notes: formData.get("notes") ?? "",
     validationDelayDays: formData.get("validationDelayDays") ?? 3,
-    color: formData.get("color") ?? "#DE2F2C",
+    color: formData.get("color") ?? "#F5352B",
     hourlyRate: formData.get("hourlyRateCents")?.toString() || undefined,
   });
   const { hourlyRate, ...rest } = data;

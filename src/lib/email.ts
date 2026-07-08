@@ -8,13 +8,13 @@ export const EMAIL_TO = "sv7hrj3vz@mozmail.com";
 export function emailShell(title: string, bodyHtml: string): string {
   return `<!doctype html>
 <html lang="fr">
-  <body style="margin:0;padding:0;background:#F6F2EA;font-family:Georgia,serif;color:#1C1917;">
-    <table role="presentation" width="100%" style="background:#F6F2EA;padding:24px 0;">
+  <body style="margin:0;padding:0;background:#F5F6F8;font-family:Georgia,serif;color:#0E1116;">
+    <table role="presentation" width="100%" style="background:#F5F6F8;padding:24px 0;">
       <tr>
         <td align="center">
-          <table role="presentation" width="560" style="max-width:92%;background:#ffffff;border:2px solid #1C1917;">
+          <table role="presentation" width="560" style="max-width:92%;background:#ffffff;border:2px solid #0E1116;">
             <tr>
-              <td style="background:#DE2F2C;color:#ffffff;padding:16px 24px;">
+              <td style="background:#F5352B;color:#ffffff;padding:16px 24px;">
                 <p style="margin:0;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;">Assist RS</p>
                 <h1 style="margin:4px 0 0;font-size:22px;">${title}</h1>
               </td>
