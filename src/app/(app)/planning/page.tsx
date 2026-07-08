@@ -11,6 +11,7 @@ import {
 } from "@/app/actions/publications";
 import { createRecurrence, toggleRecurrenceActive, deleteRecurrence } from "@/app/actions/recurrences";
 import { addClientNoteForPublication, deleteClientNote } from "@/app/actions/brand";
+import { isBlobConfigured } from "@/lib/blob";
 import { generateOccurrences } from "@/lib/recurrences";
 import { ViewToolbar } from "@/components/dataviews/ViewToolbar";
 import { TableView } from "@/components/dataviews/TableView";
@@ -92,7 +93,7 @@ export default async function PlanningPage({
     stepsByPub.set(s.publicationId, pubSteps);
   }
 
-  const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  const blobConfigured = isBlobConfigured();
   const assets = list.length
     ? await db.select().from(publicationAssets).where(inArray(publicationAssets.publicationId, list.map((p) => p.id)))
     : [];
@@ -402,7 +403,7 @@ export default async function PlanningPage({
                               <AssetUploader publicationId={pub.id} initialAssets={assetsByPub.get(pub.id) ?? []} />
                             ) : (
                               <p className="text-xs text-ink/50">
-                                <span aria-hidden>⚠</span> Configure BLOB_READ_WRITE_TOKEN pour uploader des visuels
+                                <span aria-hidden>⚠</span> Vercel Blob n&apos;est pas configuré pour uploader des visuels
                                 (le champ URL de la publication reste utilisable).
                               </p>
                             )}

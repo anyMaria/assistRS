@@ -8,6 +8,7 @@ import { cycleSlot } from "@/app/actions/timeslots";
 import { scheduleProvider } from "@/lib/schedule/provider";
 import { PLATFORMS, CONTENT_TYPES, DAYS_SHORT, platformColor } from "@/lib/constants";
 import { formatDateTime } from "@/lib/constants";
+import { isBlobConfigured } from "@/lib/blob";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ const INTEGRATIONS = [
   { label: "Gemini (IA)", key: "GEMINI_API_KEY", configured: !!process.env.GEMINI_API_KEY },
   { label: "Apify (S'inspirer)", key: "APIFY_TOKEN", configured: !!process.env.APIFY_TOKEN },
   { label: "Resend (e-mails)", key: "RESEND_API_KEY", configured: !!process.env.RESEND_API_KEY },
-  { label: "Vercel Blob (fichiers)", key: "BLOB_READ_WRITE_TOKEN", configured: !!process.env.BLOB_READ_WRITE_TOKEN },
+  { label: "Vercel Blob (fichiers)", key: "BLOB_READ_WRITE_TOKEN / BLOB_STORE_ID", configured: isBlobConfigured() },
   { label: "Buffer (publication)", key: "BUFFER_ACCESS_TOKEN", configured: !!process.env.BUFFER_ACCESS_TOKEN },
 ] as const;
 

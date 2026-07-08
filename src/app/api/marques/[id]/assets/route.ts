@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db, brandAssets } from "@/db";
+import { isBlobConfigured } from "@/lib/blob";
 
 export async function POST(
   request: Request,
@@ -11,8 +12,8 @@ export async function POST(
   const back = (query: string) =>
     NextResponse.redirect(new URL(`/marques/${accountId}?onglet=identite${query}`, request.url), 303);
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return back("&assetError=Configure+BLOB_READ_WRITE_TOKEN+pour+activer+l%27upload.");
+  if (!isBlobConfigured()) {
+    return back("&assetError=Vercel+Blob+n%27est+pas+configuré+pour+activer+l%27upload.");
   }
 
   try {

@@ -84,8 +84,7 @@ export function IdentiteTab({
         <h3 className="font-display text-xl">Assets</h3>
         {!blobConfigured ? (
           <p className="card mt-3 border-danger p-4 text-sm text-danger">
-            ⚠ Configure <code>BLOB_READ_WRITE_TOKEN</code>{" "}
-            pour activer l&apos;upload d&apos;assets.
+            ⚠ Vercel Blob n&apos;est pas configuré pour activer l&apos;upload d&apos;assets.
           </p>
         ) : (
           <form

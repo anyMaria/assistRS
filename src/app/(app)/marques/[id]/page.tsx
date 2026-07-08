@@ -31,6 +31,7 @@ import { IdentiteTab } from "@/components/brand/IdentiteTab";
 import { EditorialTab } from "@/components/brand/EditorialTab";
 import { MemoireTab } from "@/components/brand/MemoireTab";
 import { RetoursTab } from "@/components/brand/RetoursTab";
+import { isBlobConfigured } from "@/lib/blob";
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +113,7 @@ export default async function MarqueDetailPage({
           action={updateBrandIdentity.bind(null, accountId)}
           deleteAssetAction={deleteBrandAsset.bind(null, accountId)}
           assetError={assetError}
-          blobConfigured={Boolean(process.env.BLOB_READ_WRITE_TOKEN)}
+          blobConfigured={isBlobConfigured()}
         />
       )}
       {activeTab === "editorial" && (

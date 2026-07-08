@@ -16,6 +16,7 @@ import {
 } from "@/lib/apify";
 import { optimizeQuery } from "@/lib/inspiration-query";
 import { monthlySpendCents } from "@/lib/api-usage";
+import { isBlobConfigured } from "@/lib/blob";
 
 const searchSchema = z.object({
   theme: z.string().min(1, "Le thème est requis"),
@@ -201,7 +202,7 @@ export async function epinglerItem(
 
   // blobThumbUrl stocke le pathname du blob privé (servi via /api/blob/[...path], proxy authentifié).
   let blobThumbUrl: string | null = null;
-  if (process.env.BLOB_READ_WRITE_TOKEN && item.imageUrl) {
+  if (isBlobConfigured() && item.imageUrl) {
     try {
       const { put } = await import("@vercel/blob");
       const res = await fetch(item.imageUrl);

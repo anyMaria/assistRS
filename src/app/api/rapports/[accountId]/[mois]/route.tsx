@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { db, reports } from "@/db";
 import { buildMonthlyReportData } from "@/lib/report-data";
 import { RapportPDF } from "@/components/reports/RapportPDF";
+import { isBlobConfigured } from "@/lib/blob";
 
 export async function GET(
   _req: Request,
@@ -21,7 +22,7 @@ export async function GET(
     const buffer = await renderToBuffer(<RapportPDF data={data} />);
 
     let blobUrl: string | null = null;
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    if (isBlobConfigured()) {
       try {
         const { put } = await import("@vercel/blob");
         const blob = await put(`rapports/${id}/${mois}.pdf`, buffer, {

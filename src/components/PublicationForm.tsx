@@ -22,7 +22,7 @@ export function PublicationForm({
   publication?: Publication;
   /** Visuels déjà uploadés (édition uniquement) — cf. `listAssets`. */
   assets?: PublicationAsset[];
-  /** Vrai si BLOB_READ_WRITE_TOKEN est configuré côté serveur. */
+  /** Vrai si Vercel Blob est configuré côté serveur (`isBlobConfigured`). */
   blobConfigured?: boolean;
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
@@ -113,7 +113,7 @@ export function PublicationForm({
           <div className="space-y-2">
             <p className="card p-4 text-sm text-ink/60">
               <span className="flex items-center gap-2 font-semibold text-warn">
-                <span aria-hidden>⚠</span> Configure BLOB_READ_WRITE_TOKEN pour uploader des visuels.
+                <span aria-hidden>⚠</span> Vercel Blob n&apos;est pas configuré pour uploader des visuels.
               </span>
             </p>
             <input

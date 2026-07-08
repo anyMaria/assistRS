@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db, publications, statSnapshots, ideas, publicationAssets } from "@/db";
 import { insertDefaultSteps } from "@/lib/production-steps";
 import { insertAssetIfMissing } from "@/lib/publication-assets";
+import { isBlobConfigured } from "@/lib/blob";
 import type { PublicationAsset } from "@/db/schema";
 
 const pubSchema = z.object({
@@ -112,7 +113,7 @@ export async function deletePublication(id: number) {
 
 /** Supprime les blobs d'une publication (le cascade DB ne supprime que les lignes, pas les fichiers). */
 export async function purgeAssetsForPublication(publicationId: number): Promise<number> {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return 0;
+  if (!isBlobConfigured()) return 0;
   const assets = await db.select().from(publicationAssets).where(eq(publicationAssets.publicationId, publicationId));
   if (assets.length === 0) return 0;
   const { del } = await import("@vercel/blob");
@@ -134,7 +135,7 @@ export async function purgeAssetsForPublication(publicationId: number): Promise<
  * blobs transitoires ne servent plus à rien.
  */
 export async function purgerAssetsExpires(): Promise<number> {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return 0;
+  if (!isBlobConfigured()) return 0;
   const seuil = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const candidates = await db
     .select()
@@ -175,7 +176,7 @@ export async function reordonnerAssets(ids: number[]) {
 export async function supprimerAsset(id: number) {
   const [asset] = await db.select().from(publicationAssets).where(eq(publicationAssets.id, id));
   if (!asset) return;
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (isBlobConfigured()) {
     try {
       const { del } = await import("@vercel/blob");
       await del(asset.pathname);
