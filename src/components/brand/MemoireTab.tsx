@@ -8,11 +8,16 @@ export function MemoireTab({
   addAction,
   toggleAction,
   deleteAction,
+  prefillRule,
+  prefillOrigin,
 }: {
   rules: BrandMemoryRule[];
   addAction: (formData: FormData) => Promise<void>;
   toggleAction: (id: number, active: boolean) => Promise<void>;
   deleteAction: (id: number) => Promise<void>;
+  /** Pré-remplissage venu du bouton « Transformer en règle de mémoire » d'un retour client (G12). */
+  prefillRule?: string;
+  prefillOrigin?: string;
 }) {
   return (
     <div className="mt-5 space-y-6">
@@ -41,11 +46,17 @@ export function MemoireTab({
       <form action={addAction} className="card flex flex-wrap items-end gap-3 p-4">
         <label className="flex-1">
           <span className="field-label">Nouvelle règle</span>
-          <input name="rule" required className="field" placeholder="Ana remplace « N'hésitez pas à » par un impératif direct" />
+          <input
+            name="rule"
+            required
+            defaultValue={prefillRule}
+            className="field"
+            placeholder="Ana remplace « N'hésitez pas à » par un impératif direct"
+          />
         </label>
         <label>
           <span className="field-label">Origine</span>
-          <input name="origin" className="field" placeholder="ajout manuel" />
+          <input name="origin" defaultValue={prefillOrigin} className="field" placeholder="ajout manuel" />
         </label>
         <SubmitButton label="Ajouter la règle" />
       </form>

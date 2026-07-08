@@ -404,6 +404,32 @@ export const reports = sqliteTable("reports", {
     .default(sql`(unixepoch())`),
 });
 
+// Retour client archivé (verbatim, pas une règle) — rattaché à une marque, et
+// optionnellement à une publication précise. CONCEPTION.md §G12.
+export const brandClientNotes = sqliteTable("brand_client_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id")
+    .notNull()
+    .references(() => accounts.id, { onDelete: "cascade" }),
+  publicationId: integer("publication_id").references(() => publications.id, {
+    onDelete: "set null",
+  }),
+  content: text("content").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Pense-bête d'idées en vrac — étape amont d'une vraie idée, vit dans la base d'idées.
+export const ideaNotes = sqliteTable("idea_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  accountId: integer("account_id").references(() => accounts.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 // Génération IA (légende, idées, calendrier, analyse, amélioration) — CONCEPTION.md §10
 export const generations = sqliteTable("generations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -449,3 +475,5 @@ export type Goal = typeof goals.$inferSelect;
 export type TimeEntry = typeof timeEntries.$inferSelect;
 export type Report = typeof reports.$inferSelect;
 export type Generation = typeof generations.$inferSelect;
+export type BrandClientNote = typeof brandClientNotes.$inferSelect;
+export type IdeaNote = typeof ideaNotes.$inferSelect;

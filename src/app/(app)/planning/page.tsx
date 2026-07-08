@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Check, Plus, Repeat, Trash2 } from "lucide-react";
 import { desc, eq, inArray } from "drizzle-orm";
-import { db, publications, accounts, viewConfigs, colorRules, statSnapshots, ideas, productionSteps, recurrences, publicationAssets } from "@/db";
+import { db, publications, accounts, viewConfigs, colorRules, statSnapshots, ideas, productionSteps, recurrences, publicationAssets, brandClientNotes } from "@/db";
 import {
   createPublication,
   deletePublication,
@@ -10,6 +10,7 @@ import {
   declinerPublication,
 } from "@/app/actions/publications";
 import { createRecurrence, toggleRecurrenceActive, deleteRecurrence } from "@/app/actions/recurrences";
+import { addClientNoteForPublication, deleteClientNote } from "@/app/actions/brand";
 import { generateOccurrences } from "@/lib/recurrences";
 import { ViewToolbar } from "@/components/dataviews/ViewToolbar";
 import { TableView } from "@/components/dataviews/TableView";
@@ -102,6 +103,16 @@ export default async function PlanningPage({
     assetsByPub.set(a.publicationId, pubAssets);
   }
   for (const pubAssets of assetsByPub.values()) pubAssets.sort((x, y) => x.position - y.position);
+
+  const clientNotes = list.length
+    ? await db.select().from(brandClientNotes).where(inArray(brandClientNotes.publicationId, list.map((p) => p.id)))
+    : [];
+  const clientNotesByPub = new Map<number, typeof clientNotes>();
+  for (const n of clientNotes) {
+    const pubNotes = clientNotesByPub.get(n.publicationId!) ?? [];
+    pubNotes.push(n);
+    clientNotesByPub.set(n.publicationId!, pubNotes);
+  }
 
   const rows: RuleRow[] = list.map((pub) => {
     const account = accountById.get(pub.accountId);
@@ -425,6 +436,36 @@ export default async function PlanningPage({
                             <BufferButton publicationId={pub.id} />
                           </div>
                         )}
+                        <div className="mt-4 border-t border-line pt-4">
+                          <p className="field-label">Retours client</p>
+                          <div className="mt-2 space-y-2">
+                            {(clientNotesByPub.get(pub.id) ?? []).map((n) => (
+                              <div key={n.id} className="card flex items-start justify-between gap-3 p-3 text-sm">
+                                <div>
+                                  <p>{n.content}</p>
+                                  <p className="mt-1 text-xs text-ink/40">{formatDateTime(n.createdAt)}</p>
+                                </div>
+                                <ConfirmDeleteButton
+                                  action={deleteClientNote.bind(null, pub.accountId, n.id)}
+                                  confirmMessage="Supprimer ce retour ?"
+                                />
+                              </div>
+                            ))}
+                            {(clientNotesByPub.get(pub.id) ?? []).length === 0 && (
+                              <p className="text-xs italic text-ink/40">Aucun retour client sur cette publication.</p>
+                            )}
+                            <form
+                              action={addClientNoteForPublication.bind(null, pub.accountId, pub.id)}
+                              className="flex flex-wrap items-end gap-2"
+                            >
+                              <label className="flex-1">
+                                <span className="field-label">Ajouter un retour client</span>
+                                <input name="content" required className="field" placeholder="Ce que le client a dit…" />
+                              </label>
+                              <button type="submit" className="btn text-sm">Ajouter</button>
+                            </form>
+                          </div>
+                        </div>
                       </>
                     );
                   }}

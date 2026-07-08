@@ -3,7 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, accounts, brandProfiles, brandIdentity, brandEditorial, brandMemoryRules, brandAssets } from "@/db";
+import {
+  db,
+  accounts,
+  brandProfiles,
+  brandIdentity,
+  brandEditorial,
+  brandMemoryRules,
+  brandAssets,
+  brandClientNotes,
+} from "@/db";
 
 function jsonArray(formData: FormData, key: string): unknown[] {
   const raw = formData.get(key)?.toString() || "[]";
@@ -164,6 +173,36 @@ export async function toggleMemoryRule(accountId: number, id: number, active: bo
 export async function deleteMemoryRule(accountId: number, id: number) {
   await db.delete(brandMemoryRules).where(eq(brandMemoryRules.id, id));
   revalidateBrand(accountId);
+}
+
+// ——— Onglet Retours client (verbatim archivé, distinct de la mémoire de corrections) ———
+
+export async function addClientNote(accountId: number, formData: FormData) {
+  const content = formData.get("content")?.toString().trim();
+  if (!content) return;
+  const publicationIdRaw = formData.get("publicationId")?.toString();
+  await db.insert(brandClientNotes).values({
+    accountId,
+    content,
+    publicationId: publicationIdRaw ? Number(publicationIdRaw) : null,
+  });
+  revalidateBrand(accountId);
+  revalidatePath("/planning");
+}
+
+/** Même action, appelable depuis le détail d'une publication (planning) : accountId déduit côté appelant. */
+export async function addClientNoteForPublication(accountId: number, publicationId: number, formData: FormData) {
+  const content = formData.get("content")?.toString().trim();
+  if (!content) return;
+  await db.insert(brandClientNotes).values({ accountId, publicationId, content });
+  revalidateBrand(accountId);
+  revalidatePath("/planning");
+}
+
+export async function deleteClientNote(accountId: number, id: number) {
+  await db.delete(brandClientNotes).where(eq(brandClientNotes.id, id));
+  revalidateBrand(accountId);
+  revalidatePath("/planning");
 }
 
 // ——— Assets ———

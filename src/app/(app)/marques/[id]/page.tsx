@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import {
   db,
   accounts,
@@ -9,6 +9,8 @@ import {
   brandEditorial,
   brandAssets,
   brandMemoryRules,
+  brandClientNotes,
+  publications,
 } from "@/db";
 import {
   updateBrandContext,
@@ -18,6 +20,8 @@ import {
   toggleMemoryRule,
   deleteMemoryRule,
   deleteBrandAsset,
+  addClientNote,
+  deleteClientNote,
 } from "@/app/actions/brand";
 import { deleteAccountAndRedirect } from "@/app/actions/accounts";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -26,6 +30,7 @@ import { ContexteTab } from "@/components/brand/ContexteTab";
 import { IdentiteTab } from "@/components/brand/IdentiteTab";
 import { EditorialTab } from "@/components/brand/EditorialTab";
 import { MemoireTab } from "@/components/brand/MemoireTab";
+import { RetoursTab } from "@/components/brand/RetoursTab";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +39,7 @@ const TABS = [
   { key: "identite", label: "Identité visuelle" },
   { key: "editorial", label: "Ligne éditoriale" },
   { key: "memoire", label: "Mémoire de corrections" },
+  { key: "retours", label: "Retours client" },
 ] as const;
 
 export default async function MarqueDetailPage({
@@ -41,11 +47,11 @@ export default async function MarqueDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ onglet?: string; assetError?: string }>;
+  searchParams: Promise<{ onglet?: string; assetError?: string; reglePreremplie?: string; origine?: string }>;
 }) {
   const { id } = await params;
   const accountId = Number(id);
-  const { onglet, assetError } = await searchParams;
+  const { onglet, assetError, reglePreremplie, origine } = await searchParams;
   const activeTab = TABS.find((t) => t.key === onglet)?.key ?? "contexte";
 
   const [account] = await db.select().from(accounts).where(eq(accounts.id, accountId));
@@ -56,6 +62,16 @@ export default async function MarqueDetailPage({
   const [editorial] = await db.select().from(brandEditorial).where(eq(brandEditorial.accountId, accountId));
   const assets = await db.select().from(brandAssets).where(eq(brandAssets.accountId, accountId));
   const memoryRules = await db.select().from(brandMemoryRules).where(eq(brandMemoryRules.accountId, accountId));
+  const clientNotes = await db
+    .select()
+    .from(brandClientNotes)
+    .where(eq(brandClientNotes.accountId, accountId))
+    .orderBy(desc(brandClientNotes.createdAt));
+  const accountPublications = await db
+    .select({ id: publications.id, title: publications.title, platform: publications.platform })
+    .from(publications)
+    .where(eq(publications.accountId, accountId))
+    .orderBy(desc(publications.id));
 
   return (
     <div>
@@ -108,6 +124,17 @@ export default async function MarqueDetailPage({
           addAction={addMemoryRule.bind(null, accountId)}
           toggleAction={toggleMemoryRule.bind(null, accountId)}
           deleteAction={deleteMemoryRule.bind(null, accountId)}
+          prefillRule={reglePreremplie}
+          prefillOrigin={origine}
+        />
+      )}
+      {activeTab === "retours" && (
+        <RetoursTab
+          accountId={accountId}
+          notes={clientNotes}
+          publications={accountPublications}
+          addAction={addClientNote.bind(null, accountId)}
+          deleteAction={deleteClientNote.bind(null, accountId)}
         />
       )}
 
