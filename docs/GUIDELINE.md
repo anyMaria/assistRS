@@ -671,8 +671,12 @@ Enregistrer les polices Fraunces/Work Sans via `Font.register` (fichiers .ttf da
 3. `searchParams` non-await → erreur runtime « searchParams should be awaited ».
 4. Colonnes JSON : oublier `JSON.parse` → affichage « ["instagram"] » brut à l'écran.
 5. ESLint bloque les apostrophes nues dans le JSX → `&apos;`.
-6. `npm run db:push` après CHAQUE modification de schema.ts, sinon erreurs SQLite
-   « no such column ».
+6. `npm run db:push` après CHAQUE modification de schema.ts — **et pas seulement en
+   local**. `.env.local` pointe sur `file:local.db` par défaut : un `db:push` lancé
+   sans variables explicites ne touche QUE la base locale, jamais Turso. Sans un
+   second `db:push` ciblé sur la prod (voir `DEPLOIEMENT.md` §7), le schéma dérive en
+   silence jusqu'à ce qu'une page en prod plante avec « no such column » — vécu
+   plusieurs fois de suite (G11, G13, G14) avant d'être détecté par Ana en usage réel.
 7. Les images scrapées (Instagram surtout) ont des URL à durée de vie courte → toujours
    copier en Blob ce qu'on veut garder (moodboards).
 8. Vercel Hobby : 1 seul cron quotidien fiable → tout passe par `/api/cron/quotidien`.

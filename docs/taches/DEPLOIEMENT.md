@@ -107,6 +107,38 @@ vérifier sa présence dans Settings → Environment Variables plutôt que la cr
 
 Une fois l'URL stable : Safari → ouvrir l'app → Partager → « Sur l'écran d'accueil ».
 
+## Étape 7 — Après CHAQUE futur changement de schema.ts (pas juste au déploiement initial)
+
+**Incident vécu (08/07/2026)** : plusieurs blocs (G11, G13, G14) ont ajouté des colonnes
+et une table (`publication_assets`) au schéma sans jamais les pousser sur Turso — le
+`db:push` de fin de session tourne sur `.env.local` (`file:local.db`), donc ne touche
+que la base locale. Le drift s'est accumulé en silence jusqu'à des erreurs 500 en prod
+(« no such column »), détectées par Ana en usage réel plutôt qu'à la source.
+
+Après **tout** commit qui modifie `src/db/schema.ts`, pousser aussi le schéma sur Turso :
+
+1. Vérifier d'abord si `DATABASE_URL`/`DATABASE_AUTH_TOKEN` sont lisibles en local :
+   `npx vercel env pull .env.vercel-production --environment production` (nécessite
+   `npx vercel link` une fois par poste). Si le fichier contient des valeurs non vides
+   pour ces deux variables → elles ne sont plus marquées **Sensitive**, passer à l'étape 2.
+   Si elles reviennent vides alors que `vercel env ls production` les liste bien comme
+   `Encrypted` → elles sont marquées **Sensitive** dans Vercel (Settings → Environment
+   Variables → icône crayon sur chaque variable → décocher « Sensitive »). Une fois
+   décochées, elles redeviennent lisibles via `vercel env pull`.
+   **Supprimer `.env.vercel-production` juste après usage** — ne jamais le committer
+   (déjà couvert par `.gitignore` via `.env*`, à vérifier si besoin).
+2. `set -a && source .env.vercel-production && set +a && npx drizzle-kit push` (ou
+   l'équivalent PowerShell `$env:DATABASE_URL=...; $env:DATABASE_AUTH_TOKEN=...`) —
+   confirmer les changements listés par drizzle-kit avant de valider.
+3. Si Ana préfère ne pas désactiver Sensitive : solution de repli utilisée en
+   08/07/2026, une route API temporaire dans l'app (ex. `/api/admin/sync-schema`,
+   protégée par `CRON_SECRET`) qui compare `PRAGMA table_info` de chaque table au
+   schéma attendu et applique les `ALTER TABLE`/`CREATE TABLE` manquants au runtime
+   (elle a accès aux vraies valeurs même Sensitive). À committer, déployer, appeler
+   une fois, puis supprimer et redéployer — ne jamais la laisser en prod.
+4. Vérifier après coup avec `get_runtime_errors` (MCP Vercel) ou en rechargeant les
+   pages concernées : plus d'erreur « no such column »/« no such table ».
+
 ## Fin de bloc
 
 - Récapituler : URL de production, liste des variables configurées (noms seulement),
