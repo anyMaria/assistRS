@@ -266,6 +266,19 @@ const EXPECTED: Record<string, [string, string][]> = {
   ],
 };
 
+// Tables absentes en prod (jamais créées par un db:push), avec leur DDL complet.
+const MISSING_TABLES: Record<string, string> = {
+  publication_assets: `CREATE TABLE publication_assets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    publication_id INTEGER NOT NULL REFERENCES publications(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    pathname TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    size_bytes INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+};
+
 const ONE_TIME_TOKEN = process.env.CRON_SECRET;
 
 export async function GET(req: Request) {
@@ -275,6 +288,7 @@ export async function GET(req: Request) {
   }
 
   const added: string[] = [];
+  const tablesCreated: string[] = [];
   const skippedMissingTable: string[] = [];
   const errors: { table: string; column: string; error: string }[] = [];
 
@@ -285,10 +299,22 @@ export async function GET(req: Request) {
         sql.raw(`PRAGMA table_info(${table})`)
       );
       if (info.length === 0) {
-        skippedMissingTable.push(table);
-        continue;
+        if (MISSING_TABLES[table]) {
+          try {
+            await db.run(sql.raw(MISSING_TABLES[table]));
+            tablesCreated.push(table);
+            existing = new Set(columns.map(([c]) => c).concat("id"));
+          } catch (e) {
+            errors.push({ table, column: "*", error: e instanceof Error ? e.message : String(e) });
+            continue;
+          }
+        } else {
+          skippedMissingTable.push(table);
+          continue;
+        }
+      } else {
+        existing = new Set(info.map((row) => row.name));
       }
-      existing = new Set(info.map((row) => row.name));
     } catch (e) {
       errors.push({ table, column: "*", error: e instanceof Error ? e.message : String(e) });
       continue;
@@ -305,5 +331,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: errors.length === 0, added, skippedMissingTable, errors });
+  return NextResponse.json({ ok: errors.length === 0, added, tablesCreated, skippedMissingTable, errors });
 }
