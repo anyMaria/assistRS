@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { isNotNull } from "drizzle-orm";
 import { db, accounts, moodboards, inspirationItems } from "@/db";
 import { creerMoodboard, retirerDuMoodboard } from "@/app/actions/inspiration";
+import { FormDialog } from "@/components/FormDialog";
+import { SectionHeader } from "@/components/SectionHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -27,43 +30,41 @@ export default async function MoodboardsPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Moodboards</h1>
-      <p className="mt-1 text-ink/60">
-        Les visuels épinglés depuis S&apos;inspirer, par marque ou par thème.
-      </p>
+      <SectionHeader
+        title="Moodboards"
+        subtitle="Les visuels épinglés depuis S'inspirer, par marque ou par thème."
+        action={
+          <FormDialog trigger={<><Plus size={16} aria-hidden /> Nouveau moodboard</>} title="Nouveau moodboard">
+            <form action={creerMoodboardAction} className="grid gap-4 md:grid-cols-3">
+              <label>
+                <span className="field-label">Nom *</span>
+                <input name="name" required className="field" placeholder="Palette automne 2026" />
+              </label>
+              <label>
+                <span className="field-label">Marque (optionnel)</span>
+                <select name="accountId" defaultValue="" className="field">
+                  <option value="">— libre / thématique —</option>
+                  {allAccounts.map((a) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className="field-label">Thème (optionnel)</span>
+                <input name="theme" className="field" placeholder="coulisses, artisanat…" />
+              </label>
+              <div className="md:col-span-3">
+                <button type="submit" className="btn btn-accent">Créer le moodboard</button>
+              </div>
+            </form>
+          </FormDialog>
+        }
+      />
       <p className="mt-4">
         <Link href="/conception?onglet=inspirer" className="text-sm font-semibold text-accent underline underline-offset-2">
           ← Retour à S&apos;inspirer
         </Link>
       </p>
-
-      <details className="card mt-6">
-        <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouveau moodboard</summary>
-        <div className="border-t border-line p-5">
-          <form action={creerMoodboardAction} className="grid gap-4 md:grid-cols-3">
-            <label>
-              <span className="field-label">Nom *</span>
-              <input name="name" required className="field" placeholder="Palette automne 2026" />
-            </label>
-            <label>
-              <span className="field-label">Marque (optionnel)</span>
-              <select name="accountId" defaultValue="" className="field">
-                <option value="">— libre / thématique —</option>
-                {allAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="field-label">Thème (optionnel)</span>
-              <input name="theme" className="field" placeholder="coulisses, artisanat…" />
-            </label>
-            <div className="md:col-span-3">
-              <button type="submit" className="btn btn-accent">Créer le moodboard</button>
-            </div>
-          </form>
-        </div>
-      </details>
 
       {boards.length === 0 ? (
         <p className="card mt-8 p-6 text-ink/60">

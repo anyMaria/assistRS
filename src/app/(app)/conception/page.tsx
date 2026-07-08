@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import {
   db,
@@ -23,6 +24,8 @@ import { LegendeEditor } from "@/components/LegendeEditor";
 import { RecallCard } from "@/components/RecallCard";
 import { IdeaGeneratorForm } from "@/components/IdeaGeneratorForm";
 import { FormatsReference } from "@/components/FormatsReference";
+import { FormDialog } from "@/components/FormDialog";
+import { SectionHeader } from "@/components/SectionHeader";
 import { SearchForm } from "@/components/inspiration/SearchForm";
 import { BudgetBar } from "@/components/inspiration/BudgetBar";
 import { PollStatus } from "@/components/inspiration/PollStatus";
@@ -66,8 +69,7 @@ export default async function ConceptionPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Conception</h1>
-      <p className="mt-1 text-ink/60">Créer des idées, s&apos;inspirer et gérer la bibliothèque d&apos;idées.</p>
+      <SectionHeader title="Conception" subtitle="Créer des idées, s'inspirer et gérer la bibliothèque d'idées." />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {TABS.map((t) => (
@@ -352,7 +354,14 @@ async function IdeesTab({ vue, mois }: { vue?: string; mois?: string }) {
 
   return (
     <div>
-      <p className="text-ink/60">Bibliothèque d&apos;idées — retenues, elles deviennent des publications via « Planifier ».</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <p className="text-ink/60">Bibliothèque d&apos;idées — retenues, elles deviennent des publications via « Planifier ».</p>
+        {allAccounts.length > 0 && (
+          <FormDialog trigger={<><Plus size={16} aria-hidden /> Nouvelle idée</>} title="Nouvelle idée">
+            <IdeaForm accounts={allAccounts} pillarsByAccount={pillarsByAccount} action={createIdea} />
+          </FormDialog>
+        )}
+      </div>
 
       {allAccounts.length === 0 ? (
         <p className="card mt-6 p-5">
@@ -360,13 +369,6 @@ async function IdeesTab({ vue, mois }: { vue?: string; mois?: string }) {
         </p>
       ) : (
         <>
-          <details className="card mt-6">
-            <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouvelle idée</summary>
-            <div className="border-t border-line p-5">
-              <IdeaForm accounts={allAccounts} pillarsByAccount={pillarsByAccount} action={createIdea} />
-            </div>
-          </details>
-
           <ViewToolbar entity="idees" basePath="/conception" extraParams="&onglet=idees" views={views} activeView={activeView} rules={rules} />
 
           {activeView.type === "table" && (

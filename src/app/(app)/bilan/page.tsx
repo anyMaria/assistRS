@@ -16,6 +16,8 @@ import { createTimeEntry, deleteTimeEntry } from "@/app/actions/time-entries";
 import { demarrerRituel } from "@/app/actions/rituel";
 import { currentMonth } from "@/lib/rituel-calendar";
 import { RitualWizard } from "@/components/RitualWizard";
+import { FormDialog } from "@/components/FormDialog";
+import { SectionHeader } from "@/components/SectionHeader";
 import { buildBilanData } from "@/lib/bilan";
 import { latestSnapshots } from "@/lib/kpi";
 import { computeGoalProgress, formatGoalValue } from "@/lib/goals";
@@ -49,10 +51,10 @@ export default async function BilanPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Bilan</h1>
-      <p className="mt-1 text-ink/60">
-        Le digest hebdo, tes objectifs du mois et le rituel éditorial — tout au même endroit.
-      </p>
+      <SectionHeader
+        title="Bilan"
+        subtitle="Le digest hebdo, tes objectifs du mois et le rituel éditorial — tout au même endroit."
+      />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {TABS.map((t) => (
@@ -242,10 +244,9 @@ async function MoisTab({ compte }: { compte?: string }) {
 
       {/* ——— Objectifs ——— */}
       <section className="mt-8">
-        <h2 className="font-display text-2xl">Objectifs</h2>
-        <details className="card mt-3">
-          <summary className="cursor-pointer p-4 font-semibold">+ Nouvel objectif</summary>
-          <div className="border-t border-line p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-2xl">Objectifs</h2>
+          <FormDialog trigger={<><Plus size={15} aria-hidden /> Nouvel objectif</>} title="Nouvel objectif" triggerClassName="btn btn-accent text-sm">
             <form action={createGoal} className="grid gap-4 md:grid-cols-2">
               <input type="hidden" name="accountId" value={account.id} />
               <label>
@@ -280,8 +281,8 @@ async function MoisTab({ compte }: { compte?: string }) {
                 <button type="submit" className="btn btn-accent">Créer l&apos;objectif</button>
               </div>
             </form>
-          </div>
-        </details>
+          </FormDialog>
+        </div>
 
         {accountGoals.length === 0 ? (
           <p className="mt-3 italic text-ink/50">Aucun objectif défini pour {account.name}.</p>

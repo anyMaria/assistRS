@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { desc, eq } from "drizzle-orm";
 import { db, accounts, publications, statSnapshots } from "@/db";
 import { createPublication, deletePublication } from "@/app/actions/publications";
 import { PublicationForm } from "@/components/PublicationForm";
 import { SnapshotForm } from "@/components/SnapshotForm";
+import { FormDialog } from "@/components/FormDialog";
+import { SectionHeader } from "@/components/SectionHeader";
 import { aggregate, engagementRate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
 import {
   PLATFORMS,
@@ -56,11 +59,21 @@ export default async function MesurerPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Mesurer</h1>
-      <p className="mt-1 text-ink/60">
-        Saisis les stats de tes publications — plusieurs relevés possibles, les KPI se
-        calculent tout seuls.
-      </p>
+      <SectionHeader
+        title="Mesurer"
+        subtitle="Saisis les stats de tes publications — plusieurs relevés possibles, les KPI se calculent tout seuls."
+        action={
+          allAccounts.length > 0 && (
+            <FormDialog trigger={<><Plus size={16} aria-hidden /> Nouvelle publication</>} title="Nouvelle publication">
+              <PublicationForm
+                accounts={allAccounts}
+                action={createPublication}
+                submitLabel="Ajouter la publication"
+              />
+            </FormDialog>
+          )
+        }
+      />
 
       {allAccounts.length === 0 ? (
         <p className="card mt-6 p-5">
@@ -68,19 +81,6 @@ export default async function MesurerPage({
         </p>
       ) : (
         <>
-          <details className="card mt-6">
-            <summary className="cursor-pointer p-4 font-display text-2xl">
-              + Nouvelle publication
-            </summary>
-            <div className="border-t border-line p-5">
-              <PublicationForm
-                accounts={allAccounts}
-                action={createPublication}
-                submitLabel="Ajouter la publication"
-              />
-            </div>
-          </details>
-
           <div className="mt-6 flex flex-wrap gap-2">
             <Link href="/mesurer" className={`btn ${!accountId ? "bg-ink text-white" : ""}`}>
               Tous

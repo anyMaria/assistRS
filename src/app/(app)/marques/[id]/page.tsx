@@ -20,6 +20,7 @@ import {
   deleteBrandAsset,
 } from "@/app/actions/brand";
 import { deleteAccountAndRedirect } from "@/app/actions/accounts";
+import { SectionHeader } from "@/components/SectionHeader";
 import { ContexteTab } from "@/components/brand/ContexteTab";
 import { IdentiteTab } from "@/components/brand/IdentiteTab";
 import { EditorialTab } from "@/components/brand/EditorialTab";
@@ -57,21 +58,25 @@ export default async function MarqueDetailPage({
 
   return (
     <div>
-      <div className="flex items-center gap-3">
-        <span className="h-5 w-5 shrink-0 border border-ink" style={{ backgroundColor: account.color }} />
-        <h1 className="font-display text-4xl">{account.name}</h1>
-      </div>
-      <p className="mt-1 text-ink/60">
-        <Link href="/marques" className="underline underline-offset-2">← Toutes les marques</Link>
-      </p>
+      <SectionHeader
+        title={
+          <span className="flex items-center gap-3">
+            <span className="brand-chip" style={{ backgroundColor: account.color }} />
+            {account.name}
+          </span>
+        }
+        subtitle={
+          <Link href="/marques" className="underline underline-offset-2">← Toutes les marques</Link>
+        }
+      />
 
       <div className="mt-6 flex flex-wrap items-center gap-1 border-b border-line">
         {TABS.map((t) => (
           <Link
             key={t.key}
             href={`/marques/${accountId}?onglet=${t.key}`}
-            className={`-mb-0.5 border-2 border-b-0 px-3 py-1.5 text-sm font-semibold ${
-              activeTab === t.key ? "border-ink bg-white" : "border-transparent text-ink/50 hover:text-ink"
+            className={`-mb-0.5 flex items-center gap-1.5 border border-b-0 px-3 py-1.5 text-sm font-semibold ${
+              activeTab === t.key ? "border-line bg-surface text-ink" : "border-transparent text-ink/50 hover:text-ink"
             }`}
           >
             {t.label}

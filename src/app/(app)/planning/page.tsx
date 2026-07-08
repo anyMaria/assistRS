@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Plus, Repeat, Trash2 } from "lucide-react";
 import { desc, eq, inArray } from "drizzle-orm";
 import { db, publications, accounts, viewConfigs, colorRules, statSnapshots, ideas, productionSteps, recurrences, publicationAssets } from "@/db";
 import {
@@ -24,6 +24,8 @@ import { RecallCard } from "@/components/RecallCard";
 import { ProductionChecklist } from "@/components/ProductionChecklist";
 import { BufferButton } from "@/components/BufferButton";
 import { EnvoyerSemaineButton, type SemaineCandidate } from "@/components/EnvoyerSemaineButton";
+import { FormDialog } from "@/components/FormDialog";
+import { SectionHeader } from "@/components/SectionHeader";
 import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import type { RuleRow } from "@/lib/color-rules";
@@ -210,12 +212,116 @@ export default async function PlanningPage({
       };
     });
 
+  const recurrencesPanel = (
+    <div className="space-y-5">
+      <form action={createRecurrence} className="grid gap-4 md:grid-cols-3">
+        <label>
+          <span className="field-label">Marque *</span>
+          <select name="accountId" required className="field">
+            {allAccounts.map((a) => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="field-label">Plateforme *</span>
+          <select name="platform" required className="field">
+            {PLATFORMS.map((p) => (
+              <option key={p.value} value={p.value}>{p.label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="field-label">Format *</span>
+          <select name="format" required className="field">
+            {FORMATS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="md:col-span-2">
+          <span className="field-label">Titre type *</span>
+          <input name="titlePattern" required className="field" placeholder="Post FAQ" />
+        </label>
+        <label>
+          <span className="field-label">Fréquence</span>
+          <select name="freq" defaultValue="hebdo" className="field">
+            {RECURRENCE_FREQS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="field-label">Jour *</span>
+          <select name="dayOfWeek" required defaultValue="0" className="field">
+            {DAYS.map((d, i) => (
+              <option key={d} value={i}>{d}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="field-label">Heure *</span>
+          <input
+            type="number"
+            name="hour"
+            required
+            min={0}
+            max={23}
+            defaultValue={11}
+            inputMode="numeric"
+            className="field"
+          />
+        </label>
+        <div className="md:col-span-3">
+          <button type="submit" className="btn btn-accent">Créer la récurrence</button>
+        </div>
+      </form>
+
+      {allRecurrences.length > 0 && (
+        <ul className="space-y-2">
+          {allRecurrences.map((rec) => {
+            const account = accountById.get(rec.accountId);
+            const toggle = toggleRecurrenceActive.bind(null, rec.id);
+            const remove = deleteRecurrence.bind(null, rec.id);
+            return (
+              <li key={rec.id} className="flex flex-wrap items-center gap-2 border border-line p-3 text-sm">
+                <span className="tag">{platformLabel(rec.platform)}</span>
+                <span className="font-semibold">{rec.titlePattern}</span>
+                <span className="text-ink/50">
+                  {account?.name} · {DAYS[rec.dayOfWeek]} {rec.hour}h ·{" "}
+                  {rec.freq === "hebdo" ? "chaque semaine" : "chaque mois"}
+                </span>
+                <form action={toggle}>
+                  <button type="submit" className="btn text-xs">
+                    {rec.active ? "Active" : "En pause"}
+                  </button>
+                </form>
+                <form action={remove}>
+                  <button type="submit" aria-label="Supprimer cette récurrence" className="btn-icon btn-icon-danger">
+                    <Trash2 size={14} aria-hidden />
+                  </button>
+                </form>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+
   return (
     <div>
-      <h1 className="font-display text-4xl">Planning</h1>
-      <p className="mt-1 text-ink/60">
-        Publications planifiées et publiées, checklist de production et récurrences.
-      </p>
+      <SectionHeader
+        title="Planning"
+        subtitle="Publications planifiées et publiées, checklist de production et récurrences."
+        action={
+          allAccounts.length > 0 && (
+            <FormDialog trigger={<><Plus size={16} aria-hidden /> Nouvelle publication</>} title="Nouvelle publication">
+              <PublicationForm accounts={allAccounts} action={createPublication} submitLabel="Ajouter la publication" />
+            </FormDialog>
+          )
+        }
+      />
 
       {allAccounts.length === 0 ? (
         <p className="card mt-6 p-5">
@@ -225,114 +331,14 @@ export default async function PlanningPage({
         <>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <EnvoyerSemaineButton candidates={semaineCandidates} />
+            <FormDialog
+              trigger={<><Repeat size={16} aria-hidden /> Récurrences ({allRecurrences.length})</>}
+              title="Récurrences"
+              triggerClassName="btn text-sm"
+            >
+              {recurrencesPanel}
+            </FormDialog>
           </div>
-
-          <details className="card mt-4">
-            <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouvelle publication</summary>
-            <div className="border-t border-line p-5">
-              <PublicationForm accounts={allAccounts} action={createPublication} submitLabel="Ajouter la publication" />
-            </div>
-          </details>
-
-          <details className="card mt-4">
-            <summary className="cursor-pointer p-4 font-display text-2xl">
-              ⟳ Récurrences ({allRecurrences.length})
-            </summary>
-            <div className="space-y-5 border-t border-line p-5">
-              <form action={createRecurrence} className="grid gap-4 md:grid-cols-3">
-                <label>
-                  <span className="field-label">Marque *</span>
-                  <select name="accountId" required className="field">
-                    {allAccounts.map((a) => (
-                      <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span className="field-label">Plateforme *</span>
-                  <select name="platform" required className="field">
-                    {PLATFORMS.map((p) => (
-                      <option key={p.value} value={p.value}>{p.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span className="field-label">Format *</span>
-                  <select name="format" required className="field">
-                    {FORMATS.map((f) => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="md:col-span-2">
-                  <span className="field-label">Titre type *</span>
-                  <input name="titlePattern" required className="field" placeholder="Post FAQ" />
-                </label>
-                <label>
-                  <span className="field-label">Fréquence</span>
-                  <select name="freq" defaultValue="hebdo" className="field">
-                    {RECURRENCE_FREQS.map((f) => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span className="field-label">Jour *</span>
-                  <select name="dayOfWeek" required defaultValue="0" className="field">
-                    {DAYS.map((d, i) => (
-                      <option key={d} value={i}>{d}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span className="field-label">Heure *</span>
-                  <input
-                    type="number"
-                    name="hour"
-                    required
-                    min={0}
-                    max={23}
-                    defaultValue={11}
-                    inputMode="numeric"
-                    className="field"
-                  />
-                </label>
-                <div className="md:col-span-3">
-                  <button type="submit" className="btn btn-accent">Créer la récurrence</button>
-                </div>
-              </form>
-
-              {allRecurrences.length > 0 && (
-                <ul className="space-y-2">
-                  {allRecurrences.map((rec) => {
-                    const account = accountById.get(rec.accountId);
-                    const toggle = toggleRecurrenceActive.bind(null, rec.id);
-                    const remove = deleteRecurrence.bind(null, rec.id);
-                    return (
-                      <li key={rec.id} className="flex flex-wrap items-center gap-2 border border-line p-3 text-sm">
-                        <span className="tag">{platformLabel(rec.platform)}</span>
-                        <span className="font-semibold">{rec.titlePattern}</span>
-                        <span className="text-ink/50">
-                          {account?.name} · {DAYS[rec.dayOfWeek]} {rec.hour}h ·{" "}
-                          {rec.freq === "hebdo" ? "chaque semaine" : "chaque mois"}
-                        </span>
-                        <form action={toggle}>
-                          <button type="submit" className="btn text-xs">
-                            {rec.active ? "Active" : "En pause"}
-                          </button>
-                        </form>
-                        <form action={remove}>
-                          <button type="submit" className="text-xs font-semibold text-danger underline underline-offset-2">
-                            Supprimer
-                          </button>
-                        </form>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </details>
 
           {views.length > 0 && activeView ? (
             <>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Sparkles, Pencil, CalendarDays, BarChart3, Plus } from "lucide-react";
+import { SectionHeader } from "@/components/SectionHeader";
 import { desc, inArray } from "drizzle-orm";
 import { db, accounts, publications, statSnapshots, productionSteps, goals, ideas } from "@/db";
 import { aggregate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
@@ -82,8 +83,11 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Tableau de bord</h1>
-      <p className="mt-1 text-ink/60">Vue d&apos;ensemble de tes comptes et des visuels à produire.</p>
+      <SectionHeader
+        title="Bonjour Ana"
+        subtitle="Vue d'ensemble de tes comptes et des visuels à produire."
+        gradient
+      />
 
       {allAccounts.length > 0 && new Date().getDate() <= 7 && (
         <div className="card mt-6 flex flex-wrap items-center gap-3 border-accent p-4" style={{ borderColor: "var(--color-accent)" }}>

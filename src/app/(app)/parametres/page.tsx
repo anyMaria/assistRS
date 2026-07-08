@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { Pencil, Check, AlertTriangle, RefreshCw } from "lucide-react";
 import { isNull, desc } from "drizzle-orm";
+import { SectionHeader } from "@/components/SectionHeader";
 import { db, icalTokens } from "@/db";
 import { genererTokenIcal, revoquerTokenIcal } from "@/app/actions/ical";
 import { cycleSlot } from "@/app/actions/timeslots";
@@ -38,8 +39,7 @@ export default async function ParametresPage({
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Paramètres</h1>
-      <p className="mt-1 text-ink/60">Horaires de publication, intégrations et export iCal.</p>
+      <SectionHeader title="Paramètres" subtitle="Horaires de publication, intégrations et export iCal." />
 
       {/* ——— Horaires de publication ——— */}
       <section id="horaires" className="mt-8 scroll-mt-6">

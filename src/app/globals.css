@@ -127,6 +127,12 @@ textarea.field {
   color: white;
   box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--accent) 60%, transparent);
 }
+.text-gradient {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .btn-accent:hover {
   filter: brightness(1.05);
   color: white;

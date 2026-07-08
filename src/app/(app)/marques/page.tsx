@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { db, accounts } from "@/db";
 import { createAccount } from "@/app/actions/accounts";
 import { AccountForm } from "@/components/AccountForm";
+import { FormDialog } from "@/components/FormDialog";
+import { SectionHeader } from "@/components/SectionHeader";
 import { platformLabel } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -11,17 +14,15 @@ export default async function MarquesPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl">Marques</h1>
-      <p className="mt-1 text-ink/60">
-        Les espaces que tu gères — la tienne, tes clients, les collectivités.
-      </p>
-
-      <details className="card mt-6">
-        <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouvelle marque</summary>
-        <div className="border-t border-line p-5">
-          <AccountForm action={createAccount} submitLabel="Créer la marque" />
-        </div>
-      </details>
+      <SectionHeader
+        title="Marques"
+        subtitle="Les espaces que tu gères — la tienne, tes clients, les collectivités."
+        action={
+          <FormDialog trigger={<><Plus size={16} aria-hidden /> Nouvelle marque</>} title="Nouvelle marque">
+            <AccountForm action={createAccount} submitLabel="Créer la marque" />
+          </FormDialog>
+        }
+      />
 
       <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {list.length === 0 && (
