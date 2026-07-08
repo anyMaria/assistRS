@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, asc, eq, isNotNull, lt } from "drizzle-orm";
 import { z } from "zod";
-import { db, publications, statSnapshots, ideas } from "@/db";
+import { db, publications, statSnapshots, ideas, publicationAssets } from "@/db";
 import { insertDefaultSteps } from "@/lib/production-steps";
+import { insertAssetIfMissing } from "@/lib/publication-assets";
+import type { PublicationAsset } from "@/db/schema";
 
 const pubSchema = z.object({
   accountId: z.coerce.number().int(),
@@ -101,8 +103,93 @@ export async function setPublicationStatus(id: number, status: string) {
 }
 
 export async function deletePublication(id: number) {
+  await purgeAssetsForPublication(id);
   await db.delete(publications).where(eq(publications.id, id));
   revalidateAll();
+}
+
+// ——— Visuels transitoires (G14) ———
+
+/** Supprime les blobs d'une publication (le cascade DB ne supprime que les lignes, pas les fichiers). */
+export async function purgeAssetsForPublication(publicationId: number): Promise<number> {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return 0;
+  const assets = await db.select().from(publicationAssets).where(eq(publicationAssets.publicationId, publicationId));
+  if (assets.length === 0) return 0;
+  const { del } = await import("@vercel/blob");
+  for (const asset of assets) {
+    try {
+      await del(asset.pathname);
+    } catch (e) {
+      console.error("[blob] suppression échouée", e);
+      // Un blob déjà absent ne doit pas stopper la purge.
+    }
+  }
+  await db.delete(publicationAssets).where(eq(publicationAssets.publicationId, publicationId));
+  return assets.length;
+}
+
+/**
+ * Purge quotidienne (cron) : publications déjà envoyées à Buffer (`bufferPostId` non nul)
+ * et planifiées il y a plus de 7 jours — Buffer a déjà copié les médias chez lui, nos
+ * blobs transitoires ne servent plus à rien.
+ */
+export async function purgerAssetsExpires(): Promise<number> {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return 0;
+  const seuil = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const candidates = await db
+    .select()
+    .from(publications)
+    .where(and(isNotNull(publications.bufferPostId), lt(publications.plannedAt, seuil)));
+
+  let total = 0;
+  for (const pub of candidates) {
+    total += await purgeAssetsForPublication(pub.id);
+  }
+  return total;
+}
+
+/** Repli côté client après `upload()` — en dev, `onUploadCompleted` n'est pas rappelé (URL non joignable). */
+export async function enregistrerAssetSecours(
+  publicationId: number,
+  url: string,
+  pathname: string,
+  sizeBytes: number,
+): Promise<{ ok: true; asset: PublicationAsset } | { ok: false; error: string }> {
+  try {
+    const asset = await insertAssetIfMissing(publicationId, url, pathname, sizeBytes);
+    revalidateAll();
+    return { ok: true, asset };
+  } catch (e) {
+    console.error("[blob] enregistrement de secours échoué", e);
+    return { ok: false, error: "L'enregistrement du visuel a échoué." };
+  }
+}
+
+/** Réordonnance des visuels d'une publication — `ids` dans le nouvel ordre. */
+export async function reordonnerAssets(ids: number[]) {
+  await Promise.all(ids.map((id, position) => db.update(publicationAssets).set({ position }).where(eq(publicationAssets.id, id))));
+  revalidateAll();
+}
+
+/** Supprime un visuel : ligne + blob. */
+export async function supprimerAsset(id: number) {
+  const [asset] = await db.select().from(publicationAssets).where(eq(publicationAssets.id, id));
+  if (!asset) return;
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { del } = await import("@vercel/blob");
+      await del(asset.pathname);
+    } catch (e) {
+      console.error("[blob] suppression échouée", e);
+    }
+  }
+  await db.delete(publicationAssets).where(eq(publicationAssets.id, id));
+  revalidateAll();
+}
+
+/** Visuels d'une publication, triés pour l'affichage/carrousel. */
+export async function listAssets(publicationId: number): Promise<PublicationAsset[]> {
+  return db.select().from(publicationAssets).where(eq(publicationAssets.publicationId, publicationId)).orderBy(asc(publicationAssets.position));
 }
 
 /** Décline une publication vers une autre plateforme (CONCEPTION.md §4.4) : copie sans dates, brief/légende à adapter. */

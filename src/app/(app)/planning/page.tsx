@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { desc, eq, inArray } from "drizzle-orm";
-import { db, publications, accounts, viewConfigs, colorRules, statSnapshots, ideas, productionSteps, recurrences } from "@/db";
+import { db, publications, accounts, viewConfigs, colorRules, statSnapshots, ideas, productionSteps, recurrences, publicationAssets } from "@/db";
 import {
   createPublication,
   deletePublication,
@@ -16,11 +16,13 @@ import { KanbanView } from "@/components/dataviews/KanbanView";
 import { CalendarView, type CalendarDeadline } from "@/components/dataviews/CalendarView";
 import { GalleryView } from "@/components/dataviews/GalleryView";
 import { PublicationForm } from "@/components/PublicationForm";
+import { AssetUploader } from "@/components/AssetUploader";
 import { LegendeEditor } from "@/components/LegendeEditor";
 import { DeclinerForm } from "@/components/DeclinerForm";
 import { RecallCard } from "@/components/RecallCard";
 import { ProductionChecklist } from "@/components/ProductionChecklist";
 import { BufferButton } from "@/components/BufferButton";
+import { EnvoyerSemaineButton, type SemaineCandidate } from "@/components/EnvoyerSemaineButton";
 import { findRecall } from "@/lib/recall";
 import { evaluateColor } from "@/lib/color-rules";
 import type { RuleRow } from "@/lib/color-rules";
@@ -83,6 +85,18 @@ export default async function PlanningPage({
     pubSteps.push(s);
     stepsByPub.set(s.publicationId, pubSteps);
   }
+
+  const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  const assets = list.length
+    ? await db.select().from(publicationAssets).where(inArray(publicationAssets.publicationId, list.map((p) => p.id)))
+    : [];
+  const assetsByPub = new Map<number, typeof assets>();
+  for (const a of assets) {
+    const pubAssets = assetsByPub.get(a.publicationId) ?? [];
+    pubAssets.push(a);
+    assetsByPub.set(a.publicationId, pubAssets);
+  }
+  for (const pubAssets of assetsByPub.values()) pubAssets.sort((x, y) => x.position - y.position);
 
   const rows: RuleRow[] = list.map((pub) => {
     const account = accountById.get(pub.accountId);
@@ -180,6 +194,21 @@ export default async function PlanningPage({
     ),
   );
 
+  const dansSeptJours = new Date();
+  dansSeptJours.setDate(dansSeptJours.getDate() + 7);
+  const semaineCandidates: SemaineCandidate[] = list
+    .filter((p) => p.status === "planifiee" && !p.bufferPostId && p.plannedAt && p.plannedAt <= dansSeptJours)
+    .map((p) => {
+      const account = accountById.get(p.accountId);
+      const hasVisual = (assetsByPub.get(p.id)?.length ?? 0) > 0 || Boolean(p.visualUrl);
+      return {
+        id: p.id,
+        label: `${formatDate(p.plannedAt)} · ${account?.name ?? "—"} · ${platformLabel(p.platform)} · ${p.title || "sans titre"}`,
+        platform: p.platform,
+        hasVisual,
+      };
+    });
+
   return (
     <div>
       <h1 className="font-display text-4xl italic">Planning</h1>
@@ -193,7 +222,11 @@ export default async function PlanningPage({
         </p>
       ) : (
         <>
-          <details className="card mt-6">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <EnvoyerSemaineButton candidates={semaineCandidates} />
+          </div>
+
+          <details className="card mt-4">
             <summary className="cursor-pointer p-4 font-display text-2xl">+ Nouvelle publication</summary>
             <div className="border-t-2 border-ink p-5">
               <PublicationForm accounts={allAccounts} action={createPublication} submitLabel="Ajouter la publication" />
@@ -342,6 +375,19 @@ export default async function PlanningPage({
                           </Link>
                         )}
                         {recall && <RecallCard match={recall} />}
+                        <div className="mt-4 border-t-2 border-ink pt-4">
+                          <p className="field-label">Visuels</p>
+                          <div className="mt-2">
+                            {blobConfigured ? (
+                              <AssetUploader publicationId={pub.id} initialAssets={assetsByPub.get(pub.id) ?? []} />
+                            ) : (
+                              <p className="text-xs text-ink/50">
+                                <span aria-hidden>⚠</span> Configure BLOB_READ_WRITE_TOKEN pour uploader des visuels
+                                (le champ URL de la publication reste utilisable).
+                              </p>
+                            )}
+                          </div>
+                        </div>
                         <div className="mt-4 border-t-2 border-ink pt-4">
                           <p className="field-label">Checklist de production</p>
                           <div className="mt-2">

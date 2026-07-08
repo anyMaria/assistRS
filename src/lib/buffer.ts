@@ -74,7 +74,7 @@ export async function createPost(params: {
   service: string;
   text: string;
   dueAt?: Date | null;
-  imageUrl?: string;
+  imageUrls?: string[];
   postType?: BufferPostType;
 }): Promise<BufferResult<{ id: string }>> {
   const token = getToken();
@@ -103,7 +103,7 @@ export async function createPost(params: {
         mode: params.dueAt ? "customScheduled" : "shareNow",
         ...(params.dueAt ? { dueAt: params.dueAt.toISOString() } : {}),
         ...(metadata ? { metadata } : {}),
-        assets: params.imageUrl ? [{ image: { url: params.imageUrl } }] : [],
+        assets: (params.imageUrls ?? []).map((url) => ({ image: { url } })),
       },
     },
   );

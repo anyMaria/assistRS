@@ -1,7 +1,8 @@
-import type { Account, Publication } from "@/db/schema";
+import type { Account, Publication, PublicationAsset } from "@/db/schema";
 import { PLATFORMS, FORMATS, PUBLICATION_STATUSES } from "@/lib/constants";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FormatsReference } from "@/components/FormatsReference";
+import { AssetUploader } from "@/components/AssetUploader";
 
 function toLocalInput(d: Date | null): string {
   if (!d) return "";
@@ -12,11 +13,17 @@ function toLocalInput(d: Date | null): string {
 export function PublicationForm({
   accounts,
   publication,
+  assets,
+  blobConfigured,
   action,
   submitLabel,
 }: {
   accounts: Account[];
   publication?: Publication;
+  /** Visuels déjà uploadés (édition uniquement) — cf. `listAssets`. */
+  assets?: PublicationAsset[];
+  /** Vrai si BLOB_READ_WRITE_TOKEN est configuré côté serveur. */
+  blobConfigured?: boolean;
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
 }) {
@@ -83,15 +90,41 @@ export function PublicationForm({
         <span className="field-label">Lien</span>
         <input name="url" defaultValue={publication?.url ?? ""} className="field" placeholder="https://…" />
       </label>
-      <label className="md:col-span-2">
-        <span className="field-label">Visuel (URL de l&apos;image finale)</span>
-        <input
-          name="visualUrl"
-          defaultValue={publication?.visualUrl ?? ""}
-          className="field"
-          placeholder="https://… (pour la vue Galerie)"
-        />
-      </label>
+      <div className="md:col-span-3">
+        <span className="field-label">Visuels</span>
+        {!publication ? (
+          <p className="card p-4 text-sm text-ink/60">
+            Enregistre d&apos;abord la publication, puis ajoute les visuels.
+          </p>
+        ) : blobConfigured ? (
+          <div className="space-y-3">
+            <AssetUploader publicationId={publication.id} initialAssets={assets ?? []} />
+            <details className="text-xs text-ink/50">
+              <summary className="cursor-pointer">ou coller une URL</summary>
+              <input
+                name="visualUrl"
+                defaultValue={publication?.visualUrl ?? ""}
+                className="field mt-2"
+                placeholder="https://… (pour la vue Galerie)"
+              />
+            </details>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="card p-4 text-sm text-ink/60">
+              <span className="flex items-center gap-2 font-semibold text-warn">
+                <span aria-hidden>⚠</span> Configure BLOB_READ_WRITE_TOKEN pour uploader des visuels.
+              </span>
+            </p>
+            <input
+              name="visualUrl"
+              defaultValue={publication?.visualUrl ?? ""}
+              className="field"
+              placeholder="https://… (URL de l'image finale)"
+            />
+          </div>
+        )}
+      </div>
       <div className="md:col-span-3">
         <SubmitButton label={submitLabel} />
       </div>

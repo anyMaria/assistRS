@@ -4,6 +4,7 @@ import { buildBilanData, renderBilanHtml } from "@/lib/bilan";
 import { sendEmail, emailShell } from "@/lib/email";
 import { rattraperRecherchesBloquees } from "@/lib/inspiration-ingest";
 import { preChaufferSuggestions } from "@/lib/inspiration-preheat";
+import { purgerAssetsExpires } from "@/app/actions/publications";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,15 @@ export async function GET(req: Request) {
   } catch (e) {
     console.error("[cron] rattrapage des recherches échoué", e);
     result.recherchesRattrapees = 0;
+  }
+
+  try {
+    const total = await purgerAssetsExpires();
+    result.assetsPurges = total;
+    if (total > 0) console.log(`[cron] purge : ${total} visuel(s) transitoire(s) supprimé(s)`);
+  } catch (e) {
+    console.error("[cron] purge des visuels échouée", e);
+    result.assetsPurges = 0;
   }
 
   if (isMonday) {

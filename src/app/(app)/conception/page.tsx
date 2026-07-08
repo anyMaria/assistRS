@@ -130,7 +130,8 @@ async function InspirerTab({ recherche }: { recherche?: string }) {
   ]);
 
   const accountById = new Map(allAccounts.map((a) => [a.id, a]));
-  const since14j = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const since14j = new Date();
+  since14j.setDate(since14j.getDate() - 14);
   const suggestions = await db
     .select()
     .from(inspirationSearches)
