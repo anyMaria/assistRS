@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { Pencil, Check, AlertTriangle, RefreshCw } from "lucide-react";
 import { isNull, desc } from "drizzle-orm";
 import { db, icalTokens } from "@/db";
 import { genererTokenIcal, revoquerTokenIcal } from "@/app/actions/ical";
@@ -113,12 +114,12 @@ export default async function ParametresPage({
                                 ? "Ajouter un créneau"
                                 : `Force ${strength}/3${slot?.source === "personnalise" ? " (personnalisé)" : ""}`
                             }
-                            className="h-8 w-full min-w-12 cursor-pointer transition hover:outline-2 hover:outline-accent"
+                            className="relative h-8 w-full min-w-12 cursor-pointer transition hover:outline-2 hover:outline-accent"
                             style={{ backgroundColor: bg }}
                           >
                             {strength === 3 ? "★" : strength === 2 ? "●" : strength === 1 ? "·" : ""}
                             {slot?.source === "personnalise" && (
-                              <span className="text-[8px] align-super">✎</span>
+                              <Pencil size={8} aria-hidden className="absolute -right-0.5 -top-0.5" />
                             )}
                           </button>
                         </form>
@@ -135,7 +136,7 @@ export default async function ParametresPage({
           <span>· créneau faible</span>
           <span>● bon créneau</span>
           <span>★ créneau fort</span>
-          <span>✎ ajusté par toi</span>
+          <span className="inline-flex items-center gap-1"><Pencil size={10} aria-hidden /> ajusté par toi</span>
         </div>
       </section>
 
@@ -153,7 +154,7 @@ export default async function ParametresPage({
                 className={`tag ${i.configured ? "text-ok" : "text-danger"}`}
                 style={{ borderColor: i.configured ? "var(--color-ok)" : "var(--color-danger)" }}
               >
-                {i.configured ? "✓ configurée" : "⚠ manquante"}
+                {i.configured ? (<><Check size={11} aria-hidden /> configurée</>) : (<><AlertTriangle size={11} aria-hidden /> manquante</>)}
               </span>
             </li>
           ))}
@@ -180,7 +181,7 @@ export default async function ParametresPage({
             </label>
             <div className="flex flex-wrap gap-2">
               <form action={genererTokenIcal}>
-                <button type="submit" className="btn text-sm">↻ Régénérer (révoque l&apos;ancien lien)</button>
+                <button type="submit" className="btn text-sm"><RefreshCw size={14} aria-hidden /> Régénérer (révoque l&apos;ancien lien)</button>
               </form>
               <form action={revoquerTokenIcal.bind(null, activeToken.id)}>
                 <button type="submit" className="text-sm font-semibold text-danger underline underline-offset-2">

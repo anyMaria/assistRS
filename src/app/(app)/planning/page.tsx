@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { desc, eq, inArray } from "drizzle-orm";
 import { db, publications, accounts, viewConfigs, colorRules, statSnapshots, ideas, productionSteps, recurrences, publicationAssets } from "@/db";
 import {
@@ -346,7 +347,7 @@ export default async function PlanningPage({
 
               <div className="mt-3">
                 <Link href={horairesToggleHref} className={`btn text-sm ${horairesOn ? "bg-ink text-white" : ""}`}>
-                  {horairesOn ? "✓ Horaires conseillés" : "Afficher les horaires conseillés"}
+                  {horairesOn ? (<><Check size={14} aria-hidden /> Horaires conseillés</>) : "Afficher les horaires conseillés"}
                 </Link>
                 {horairesOn && (
                   <span className="ml-2 text-xs text-ink/50">

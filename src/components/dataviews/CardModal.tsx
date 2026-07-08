@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 
 /**
  * Enveloppe cliquable façon Notion : le contenu passé en `trigger` ouvre une fenêtre de
@@ -60,13 +61,8 @@ export function CardModal({
           >
             <div className="flex items-start justify-between gap-4 border-b border-line pb-3">
               <h2 className="font-display text-2xl">{title}</h2>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Fermer"
-                className="btn shrink-0 px-2 py-1 text-xs"
-              >
-                ✕
+              <button type="button" onClick={close} aria-label="Fermer" className="btn-icon shrink-0">
+                <X size={16} aria-hidden />
               </button>
             </div>
             <div className="mt-4">{children}</div>

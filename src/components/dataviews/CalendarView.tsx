@@ -106,10 +106,9 @@ export function CalendarView({
                             key={idx}
                             title={d.title}
                             aria-label={`Deadline : ${d.title}`}
-                            style={{ color: DEADLINE_DOT[d.status] }}
-                          >
-                            ◆
-                          </span>
+                            className="inline-block h-2 w-2 rounded-full"
+                            style={{ backgroundColor: DEADLINE_DOT[d.status] }}
+                          />
                         ))}
                       </div>
                     </div>

@@ -1,3 +1,4 @@
+import { TrendingUp } from "lucide-react";
 import type { RecallMatch } from "@/lib/recall";
 import { formatRate } from "@/lib/kpi";
 import { platformLabel, formatLabel, formatDate } from "@/lib/constants";
@@ -6,7 +7,9 @@ import { platformLabel, formatLabel, formatDate } from "@/lib/constants";
 export function RecallCard({ match }: { match: RecallMatch }) {
   return (
     <div className="card mt-4 border-ok p-3">
-      <p className="field-label text-ok">✓ Ça avait bien marché</p>
+      <p className="field-label flex items-center gap-1 text-ok">
+        <TrendingUp size={13} aria-hidden /> Ça avait bien marché
+      </p>
       <p className="mt-1 text-sm">
         <strong>{match.title}</strong> — {platformLabel(match.platform)} · {formatLabel(match.format)} ·{" "}
         {formatDate(match.date)}

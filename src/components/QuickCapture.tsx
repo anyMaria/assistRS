@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { X, Lightbulb, CalendarDays, BarChart3, Clock } from "lucide-react";
 import type { Account, Publication } from "@/db/schema";
 import { IdeaForm } from "@/components/IdeaForm";
 import { PublicationForm } from "@/components/PublicationForm";
@@ -13,42 +14,43 @@ import { STAT_FIELDS, platformLabel } from "@/lib/constants";
 
 type Kind = "idee" | "publication" | "releve" | "temps";
 
-const ACTIONS: { kind: Kind; label: string; icon: string }[] = [
-  { kind: "idee", label: "Nouvelle idée", icon: "☁" },
-  { kind: "publication", label: "Nouvelle publication", icon: "▦" },
-  { kind: "releve", label: "Relevé de stats", icon: "▁▃▅" },
-  { kind: "temps", label: "Temps passé", icon: "◔" },
+const ACTIONS: { kind: Kind; label: string; icon: typeof Lightbulb }[] = [
+  { kind: "idee", label: "Nouvelle idée", icon: Lightbulb },
+  { kind: "publication", label: "Nouvelle publication", icon: CalendarDays },
+  { kind: "releve", label: "Relevé de stats", icon: BarChart3 },
+  { kind: "temps", label: "Temps passé", icon: Clock },
 ];
 
-/** Capture rapide « + » : accessible partout, 4 actions courtes (CONCEPTION.md §2.1 transversal). */
+/** Capture rapide : accessible depuis le bouton « Capturer » de la topbar, 4 actions courtes. */
 export function QuickCapture({
+  open,
+  onClose,
   accounts,
   pillarsByAccount,
   publications,
 }: {
+  open: boolean;
+  onClose: () => void;
   accounts: Account[];
   pillarsByAccount: Record<number, string[]>;
   publications: Pick<Publication, "id" | "accountId" | "title" | "platform">[];
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [activeKind, setActiveKind] = useState<Kind | null>(null);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setMenuOpen(false);
-        setActiveKind(null);
-      }
+      if (e.key === "Escape") closeAll();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- closeAll ne fait qu'appeler des setters stables
   }, []);
 
   if (accounts.length === 0) return null;
 
   function closeAll() {
-    setMenuOpen(false);
     setActiveKind(null);
+    onClose();
   }
 
   async function withClose(fn: (formData: FormData) => Promise<void>, formData: FormData) {
@@ -58,35 +60,32 @@ export function QuickCapture({
 
   return (
     <>
-      <div className="fixed right-4 bottom-40 md:right-6 md:bottom-6 z-40">
-        {menuOpen && (
-          <div className="mb-2 flex flex-col items-end gap-2">
+      {open && !activeKind && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center bg-ink/40 px-4 pt-[10vh]"
+          onClick={closeAll}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Capture rapide"
+            onClick={(e) => e.stopPropagation()}
+            className="card w-full max-w-sm space-y-2 p-3"
+          >
             {ACTIONS.map((a) => (
               <button
                 key={a.kind}
                 type="button"
-                onClick={() => {
-                  setActiveKind(a.kind);
-                  setMenuOpen(false);
-                }}
-                className="btn bg-white cursor-pointer"
+                onClick={() => setActiveKind(a.kind)}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-paper-2"
               >
-                <span aria-hidden>{a.icon}</span>
-                {a.label}
+                <a.icon size={18} aria-hidden className="text-accent" />
+                <span style={{ fontWeight: 550 }}>{a.label}</span>
               </button>
             ))}
           </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setMenuOpen((o) => !o)}
-          aria-label={menuOpen ? "Fermer la capture rapide" : "Capture rapide"}
-          aria-expanded={menuOpen}
-          className="flex h-14 w-14 items-center justify-center border border-line bg-accent text-2xl font-bold text-white transition hover:bg-[var(--color-accent-dark)] cursor-pointer"
-        >
-          <span aria-hidden>{menuOpen ? "✕" : "+"}</span>
-        </button>
-      </div>
+        </div>
+      )}
 
       {activeKind && (
         <div
@@ -108,9 +107,9 @@ export function QuickCapture({
                 type="button"
                 onClick={closeAll}
                 aria-label="Fermer"
-                className="text-ink/50 hover:text-ink cursor-pointer"
+                className="btn-icon"
               >
-                ✕
+                <X size={16} aria-hidden />
               </button>
             </div>
 

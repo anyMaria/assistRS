@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronLeft, ChevronRight, X, Upload } from "lucide-react";
 import { upload } from "@vercel/blob/client";
 import type { PublicationAsset } from "@/db/schema";
 import { enregistrerAssetSecours, reordonnerAssets, supprimerAsset } from "@/app/actions/publications";
@@ -68,18 +69,25 @@ export function AssetUploader({ publicationId, initialAssets }: { publicationId:
             <div key={a.id} className="relative border border-line">
               {/* eslint-disable-next-line @next/next/no-img-element -- visuel Blob public, pas d'optimiseur Next possible */}
               <img src={a.url} alt="" className="h-24 w-24 object-cover" />
-              <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-white/90 px-1 text-xs">
-                <button type="button" onClick={() => move(a.id, -1)} disabled={i === 0} className="cursor-pointer disabled:opacity-30" aria-label="Déplacer vers la gauche">◀</button>
-                <button type="button" onClick={() => remove(a.id)} className="cursor-pointer font-semibold text-danger" aria-label="Supprimer ce visuel">✕</button>
-                <button type="button" onClick={() => move(a.id, 1)} disabled={i === items.length - 1} className="cursor-pointer disabled:opacity-30" aria-label="Déplacer vers la droite">▶</button>
+              <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-white/90 px-1 py-0.5">
+                <button type="button" onClick={() => move(a.id, -1)} disabled={i === 0} className="cursor-pointer disabled:opacity-30" aria-label="Déplacer vers la gauche">
+                  <ChevronLeft size={14} aria-hidden />
+                </button>
+                <button type="button" onClick={() => remove(a.id)} className="cursor-pointer text-danger" aria-label="Supprimer ce visuel">
+                  <X size={14} aria-hidden />
+                </button>
+                <button type="button" onClick={() => move(a.id, 1)} disabled={i === items.length - 1} className="cursor-pointer disabled:opacity-30" aria-label="Déplacer vers la droite">
+                  <ChevronRight size={14} aria-hidden />
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <label className={`btn inline-block text-sm ${uploading || items.length >= MAX_ASSETS ? "pointer-events-none opacity-50" : "cursor-pointer"}`}>
-        {uploading ? "Envoi…" : "+ Ajouter des visuels"}
+      <label className={`btn inline-flex text-sm ${uploading || items.length >= MAX_ASSETS ? "pointer-events-none opacity-50" : "cursor-pointer"}`}>
+        <Upload size={14} aria-hidden />
+        {uploading ? "Envoi…" : "Ajouter des visuels"}
         <input
           type="file"
           accept="image/*"

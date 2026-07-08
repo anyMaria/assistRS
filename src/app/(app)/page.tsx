@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles, Pencil, CalendarDays, BarChart3, Plus } from "lucide-react";
 import { desc, inArray } from "drizzle-orm";
 import { db, accounts, publications, statSnapshots, productionSteps, goals, ideas } from "@/db";
 import { aggregate, formatRate, formatNumber, latestSnapshots } from "@/lib/kpi";
@@ -86,7 +87,7 @@ export default async function DashboardPage() {
 
       {allAccounts.length > 0 && new Date().getDate() <= 7 && (
         <div className="card mt-6 flex flex-wrap items-center gap-3 border-accent p-4" style={{ borderColor: "var(--color-accent)" }}>
-          <span aria-hidden className="text-xl">☾</span>
+          <Sparkles size={20} aria-hidden className="shrink-0 text-accent" />
           <p className="flex-1">
             <span className="font-semibold">15 min pour préparer le mois</span> — le rituel mensuel
             propose un calendrier éditorial par marque.
@@ -241,7 +242,9 @@ export default async function DashboardPage() {
                         ? `Publiée il y a ${daysSincePublished} j, aucun relevé`
                         : `Dernier relevé il y a ${daysSinceLastSnapshot} j`}
                     </span>
-                    <Link href="/mesurer" className="btn text-xs">＋ Relever</Link>
+                    <Link href="/mesurer" className="btn text-xs">
+                      <Plus size={14} aria-hidden /> Relever
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -270,7 +273,9 @@ export default async function DashboardPage() {
                   >
                     <p className="flex items-center justify-between font-display text-xl">
                       {account.name}
-                      <span className="text-xs font-sans font-normal text-ink/40">✎ modifier</span>
+                      <span className="flex items-center gap-1 text-xs font-sans font-normal text-ink/40">
+                        <Pencil size={12} aria-hidden /> modifier
+                      </span>
                     </p>
                     <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                       <div>
@@ -320,10 +325,10 @@ export default async function DashboardPage() {
 
           {/* Raccourcis */}
           <section className="mt-10 flex flex-wrap gap-3">
-            <Link href="/mesurer" className="btn">＋ Saisir des stats</Link>
-            <Link href="/conception?onglet=creer" className="btn">✎ Trouver une idée</Link>
-            <Link href="/planning" className="btn">▦ Planifier</Link>
-            <Link href="/bilan?onglet=mois" className="btn btn-accent">◎ Analyser</Link>
+            <Link href="/mesurer" className="btn"><Plus size={16} aria-hidden /> Saisir des stats</Link>
+            <Link href="/conception?onglet=creer" className="btn"><Pencil size={16} aria-hidden /> Trouver une idée</Link>
+            <Link href="/planning" className="btn"><CalendarDays size={16} aria-hidden /> Planifier</Link>
+            <Link href="/bilan?onglet=mois" className="btn btn-accent"><BarChart3 size={16} aria-hidden /> Analyser</Link>
           </section>
         </>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Info, X } from "lucide-react";
 import { EXPORT_FORMATS } from "@/lib/formats";
 
 /* Popover « Formats & dimensions » (GUIDELINE §4.4) — remplace l'ancienne section
@@ -12,11 +13,11 @@ export function FormatsReference() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-ink/30 align-middle text-xs text-ink/60 hover:border-ink hover:text-ink"
+        className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full border border-line align-middle text-ink/60 hover:border-ink/40 hover:text-ink"
         aria-label="Formats & dimensions"
         title="Formats & dimensions"
       >
-        ⓘ
+        <Info size={12} aria-hidden />
       </button>
       {open && (
         <>
@@ -29,8 +30,8 @@ export function FormatsReference() {
           <div className="absolute left-0 top-full z-50 mt-2 w-80 border border-line bg-paper p-3">
             <div className="flex items-center justify-between gap-2">
               <p className="field-label">Formats &amp; dimensions</p>
-              <button type="button" onClick={() => setOpen(false)} className="text-xs text-ink/50 hover:text-ink">
-                ✕
+              <button type="button" onClick={() => setOpen(false)} aria-label="Fermer" className="text-ink/50 hover:text-ink">
+                <X size={14} aria-hidden />
               </button>
             </div>
             <p className="mt-1 text-xs text-ink/50">

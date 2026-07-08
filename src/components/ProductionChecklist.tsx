@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Check } from "lucide-react";
 import { toggleStep } from "@/app/actions/production-steps";
 import { PRODUCTION_STEPS, formatDate } from "@/lib/constants";
 import type { ProductionStep } from "@/db/schema";
@@ -39,12 +40,12 @@ export function ProductionChecklist({
             className="flex cursor-pointer items-center gap-1.5 text-left text-xs"
           >
             <span
-              className={`flex h-5 w-5 shrink-0 items-center justify-center border border-line transition-transform duration-150 ${
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-line transition-transform duration-150 ${
                 done ? "bg-ink text-white" : "bg-white"
               } ${justToggled === step.key ? "scale-125" : "scale-100"}`}
               aria-hidden
             >
-              {done ? "✓" : ""}
+              {done && <Check size={13} />}
             </span>
             <span className="flex flex-col items-start">
               <span className={done ? "font-semibold" : "text-ink/60"}>{step.label}</span>

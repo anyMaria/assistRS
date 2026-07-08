@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 
 export type ListField = { key: string; label: string; placeholder?: string };
 
@@ -58,16 +59,18 @@ export function ListEditor({
               type="button"
               onClick={() => remove(i)}
               title="Supprimer cette ligne"
-              className="text-sm font-semibold text-danger"
+              aria-label="Supprimer cette ligne"
+              className="btn-icon btn-icon-danger shrink-0"
             >
-              ✕
+              <Trash2 size={14} aria-hidden />
             </button>
           </div>
         ))}
         {items.length === 0 && <p className="text-xs italic text-ink/40">Rien pour l&apos;instant.</p>}
       </div>
       <button type="button" onClick={add} className="btn mt-2 px-3 py-1 text-xs">
-        {addLabel}
+        <Plus size={13} aria-hidden />
+        {addLabel.replace(/^\+\s*/, "")}
       </button>
     </div>
   );

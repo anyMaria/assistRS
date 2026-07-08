@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check, PenLine, Sparkles, CornerDownLeft } from "lucide-react";
 import { appliquerLegende, enregistrerRegles } from "@/app/actions/ai";
 
 type Props = {
@@ -145,10 +146,10 @@ export function LegendeEditor({ kind, id, accountId, platform, format, brief, ex
           />
           <div className="mt-2 flex flex-wrap gap-2">
             <button type="button" onClick={appliquer} disabled={loading !== null || generationId === null} className="btn btn-accent text-xs disabled:cursor-not-allowed disabled:opacity-60">
-              {loading === "application" ? "Enregistrement…" : applied ? "✓ Appliqué" : "↵ Appliquer"}
+              {loading === "application" ? "Enregistrement…" : applied ? (<><Check size={13} aria-hidden /> Appliqué</>) : (<><CornerDownLeft size={13} aria-hidden /> Appliquer</>)}
             </button>
             <button type="button" onClick={ameliorer} disabled={loading !== null} className="btn text-xs disabled:cursor-not-allowed disabled:opacity-60">
-              {loading === "amelioration" ? "Amélioration…" : "✨ Améliorer mon texte"}
+              {loading === "amelioration" ? "Amélioration…" : (<><Sparkles size={13} aria-hidden /> Améliorer mon texte</>)}
             </button>
             {original !== null && (
               <button type="button" onClick={memoriser} disabled={loading !== null} className="btn text-xs disabled:cursor-not-allowed disabled:opacity-60">
@@ -162,7 +163,7 @@ export function LegendeEditor({ kind, id, accountId, platform, format, brief, ex
         </>
       ) : (
         <button type="button" onClick={rediger} disabled={loading !== null} className="btn btn-accent mt-2 text-xs disabled:cursor-not-allowed disabled:opacity-60">
-          {loading === "redaction" ? "Rédaction…" : "✎ Rédiger la légende"}
+          {loading === "redaction" ? "Rédaction…" : (<><PenLine size={13} aria-hidden /> Rédiger la légende</>)}
         </button>
       )}
 
@@ -197,7 +198,11 @@ export function LegendeEditor({ kind, id, accountId, platform, format, brief, ex
           Corrections purement factuelles — aucune règle réutilisable détectée.
         </p>
       )}
-      {reglesEnregistrees && <p className="mt-2 text-xs text-ok">✓ Règles ajoutées à la mémoire de la marque.</p>}
+      {reglesEnregistrees && (
+        <p className="mt-2 flex items-center gap-1 text-xs text-ok">
+          <Check size={12} aria-hidden /> Règles ajoutées à la mémoire de la marque.
+        </p>
+      )}
     </div>
   );
 }

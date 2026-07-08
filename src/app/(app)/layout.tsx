@@ -1,7 +1,7 @@
 import { desc } from "drizzle-orm";
-import { Nav } from "@/components/Nav";
-import { CommandPalette } from "@/components/CommandPalette";
-import { QuickCapture } from "@/components/QuickCapture";
+import { Sidebar } from "@/components/shell/Sidebar";
+import { MobileNav } from "@/components/shell/MobileNav";
+import { Topbar } from "@/components/shell/Topbar";
 import { db, accounts, brandEditorial, publications } from "@/db";
 
 export const dynamic = "force-dynamic";
@@ -33,17 +33,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen">
-      <Nav />
-      <main className="md:ml-56 px-4 md:px-8 py-6 pb-24 md:pb-10 max-w-6xl">
-        {children}
-      </main>
-      <CommandPalette />
-      <QuickCapture
-        accounts={allAccounts}
-        pillarsByAccount={pillarsByAccount}
-        publications={recentPublications}
-      />
+    <div className="flex h-screen w-full overflow-hidden bg-paper text-ink">
+      <Sidebar />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Topbar accounts={allAccounts} pillarsByAccount={pillarsByAccount} publications={recentPublications} />
+        <main className="flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-8 md:pb-10">
+          <div className="mx-auto max-w-6xl">{children}</div>
+        </main>
+      </div>
+      <MobileNav />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { RefreshCw, AlertTriangle } from "lucide-react";
 import { relancerRecherche } from "@/app/actions/inspiration";
 
 export function RelancerButton({ searchId }: { searchId: number }) {
@@ -33,13 +34,13 @@ export function RelancerButton({ searchId }: { searchId: number }) {
         type="button"
         disabled={pending}
         onClick={() => lancer(false)}
-        className="font-semibold text-accent underline underline-offset-2"
+        className="flex items-center gap-1 font-semibold text-accent underline underline-offset-2"
       >
-        {pending ? "Relance…" : "↻ Relancer"}
+        <RefreshCw size={12} aria-hidden /> {pending ? "Relance…" : "Relancer"}
       </button>
       {error && (
         <p className="mt-1 flex items-center gap-1 text-danger">
-          <span aria-hidden>⚠</span> {error}
+          <AlertTriangle size={12} aria-hidden /> {error}
         </p>
       )}
       {needsConfirm && (

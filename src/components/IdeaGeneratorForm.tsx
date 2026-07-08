@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles, Check } from "lucide-react";
 import type { Account } from "@/db/schema";
 import { PLATFORMS, formatLabel } from "@/lib/constants";
 import { createIdea, creerEtPlanifierIdee } from "@/app/actions/ideas";
@@ -90,7 +91,7 @@ export function IdeaGeneratorForm({ accounts }: { accounts: Account[] }) {
           disabled={loading || !theme.trim()}
           className="btn btn-accent mt-4 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Génération…" : "✎ Générer des idées"}
+          {loading ? "Génération…" : (<><Sparkles size={15} aria-hidden /> Générer des idées</>)}
         </button>
       </div>
 
@@ -135,7 +136,7 @@ export function IdeaGeneratorForm({ accounts }: { accounts: Account[] }) {
                 <input type="hidden" name="source" value="ia" />
                 <div className="flex flex-wrap gap-2">
                   <button type="submit" disabled={retenues.has(i)} className="btn text-xs disabled:cursor-not-allowed disabled:opacity-60">
-                    {retenues.has(i) ? "✓ Retenue" : "Retenir cette idée"}
+                    {retenues.has(i) ? (<><Check size={13} aria-hidden /> Retenue</>) : "Retenir cette idée"}
                   </button>
                   <button
                     type="submit"

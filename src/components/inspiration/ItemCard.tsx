@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Plus, Pin, Check } from "lucide-react";
 import type { InspirationItem, Moodboard } from "@/db/schema";
 import { epinglerItem, creerMoodboard } from "@/app/actions/inspiration";
 import { createIdea } from "@/app/actions/ideas";
@@ -61,7 +62,7 @@ export function ItemCard({
               <input type="hidden" name="theme" value={theme ?? ""} />
               <input type="hidden" name="content" value={item.originalUrl || item.imageUrl} />
               <input type="hidden" name="source" value="manuelle" />
-              <button type="submit" className="btn text-xs">＋ En faire une idée</button>
+              <button type="submit" className="btn text-xs"><Plus size={13} aria-hidden /> En faire une idée</button>
             </form>
           )}
           <button
@@ -69,7 +70,7 @@ export function ItemCard({
             onClick={() => setOpen((v) => !v)}
             className={`btn ml-auto text-xs ${pinned ? "bg-ink text-white" : ""}`}
           >
-            {pinned ? "✓ Épinglé" : "Épingler"}
+            {pinned ? (<><Check size={13} aria-hidden /> Épinglé</>) : (<><Pin size={13} aria-hidden /> Épingler</>)}
           </button>
         </div>
         {open && (

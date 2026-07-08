@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check, X, AlertTriangle } from "lucide-react";
 import { envoyerSemaineSurBuffer, type LigneRapportBuffer } from "@/app/actions/buffer";
 
 export type SemaineCandidate = {
@@ -76,7 +77,7 @@ export function EnvoyerSemaineButton({ candidates }: { candidates: SemaineCandid
                       <span>{c.label}</span>
                       {!c.hasVisual && (
                         <span className="tag text-xs" style={{ borderColor: "var(--color-warn)", color: "var(--color-warn)" }}>
-                          ⚠ sans visuel{c.platform === "instagram" ? " — échouera sur Instagram" : " — partira texte seul"}
+                          <AlertTriangle size={11} aria-hidden /> sans visuel{c.platform === "instagram" ? " — échouera sur Instagram" : " — partira texte seul"}
                         </span>
                       )}
                     </li>
@@ -94,8 +95,8 @@ export function EnvoyerSemaineButton({ candidates }: { candidates: SemaineCandid
                 <ul className="mt-4 space-y-2 text-sm">
                   {rapport.map((r) => (
                     <li key={r.id} className="flex items-start gap-2 border border-line p-2">
-                      <span className={r.ok ? "font-semibold text-ok" : "font-semibold text-danger"} aria-hidden>
-                        {r.ok ? "✓" : "✗"}
+                      <span className={r.ok ? "text-ok" : "text-danger"} aria-hidden>
+                        {r.ok ? <Check size={15} /> : <X size={15} />}
                       </span>
                       <span>
                         <span className="font-semibold">{r.label}</span>

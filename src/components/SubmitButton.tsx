@@ -2,6 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 
 /** Bouton de soumission partagé : état de chargement + feedback « ✓ Enregistré ». */
 export function SubmitButton({
@@ -38,7 +39,7 @@ export function SubmitButton({
       disabled={pending}
       className={`btn ${accent ? "btn-accent" : ""} ${className} disabled:cursor-not-allowed disabled:opacity-60`}
     >
-      {pending ? loadingLabel : justSaved ? "✓ Enregistré" : label}
+      {pending ? loadingLabel : justSaved ? (<><Check size={15} aria-hidden /> Enregistré</>) : label}
     </button>
   );
 }

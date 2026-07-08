@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Send, Check, AlertTriangle } from "lucide-react";
 import { envoyerSurBuffer } from "@/app/actions/buffer";
 
 /** Envoie une publication planifiée directement sur Buffer (CONCEPTION.md, piste Ana du 07/07/2026). */
@@ -35,17 +36,21 @@ export function BufferButton({ publicationId }: { publicationId: number }) {
         disabled={pending}
         className="btn text-xs disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Envoi…" : "↗ Envoyer sur Buffer"}
+        {pending ? "Envoi…" : (<><Send size={13} aria-hidden /> Envoyer sur Buffer</>)}
       </button>
-      {sent && <p className="mt-1 text-xs font-semibold text-ok">✓ Envoyée sur Buffer.</p>}
+      {sent && (
+        <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-ok">
+          <Check size={13} aria-hidden /> Envoyée sur Buffer.
+        </p>
+      )}
       {warning && (
         <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-warn">
-          <span aria-hidden>⚠</span> {warning}
+          <AlertTriangle size={13} aria-hidden /> {warning}
         </p>
       )}
       {error && (
         <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-danger">
-          <span aria-hidden>⚠</span> {error}
+          <AlertTriangle size={13} aria-hidden /> {error}
         </p>
       )}
     </div>

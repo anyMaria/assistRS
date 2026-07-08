@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 import { PLATFORMS } from "@/lib/constants";
 import { EXPORT_FORMATS } from "@/lib/formats";
 
@@ -63,7 +64,9 @@ export function DeclinerForm({
       </form>
       {done && (
         <div className="mt-2 text-xs">
-          <p className="font-semibold text-ok">✓ Copie créée pour {PLATFORMS.find((p) => p.value === done)?.label}.</p>
+          <p className="flex items-center gap-1 font-semibold text-ok">
+            <Check size={13} aria-hidden /> Copie créée pour {PLATFORMS.find((p) => p.value === done)?.label}.
+          </p>
           {reminder && (
             <p className="mt-1 text-ink/60">
               Rappel de format : <strong>{reminder.format}</strong> — {reminder.dimensions}. Toujours ré-exporter

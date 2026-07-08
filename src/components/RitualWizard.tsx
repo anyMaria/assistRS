@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
 import {
   genererPropositions,
   validerRituel,
@@ -80,7 +81,10 @@ export function RitualWizard({
   if (status === "valide") {
     return (
       <p className="card mt-6 p-6">
-        <span className="font-semibold text-ok">✓ Rituel validé pour ce mois</span> — les publications
+        <span className="inline-flex items-center gap-1 font-semibold text-ok">
+          <Check size={14} aria-hidden /> Rituel validé pour ce mois
+        </span>{" "}
+        — les publications
         retenues sont dans le{" "}
         <a href="/planning" className="font-semibold text-accent underline">
           planning

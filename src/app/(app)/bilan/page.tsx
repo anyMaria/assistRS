@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { desc, eq, inArray } from "drizzle-orm";
 import {
   db,
@@ -152,7 +153,7 @@ async function SemaineTab() {
                     ? `Publiée il y a ${daysSincePublished} j, aucun relevé`
                     : `Dernier relevé il y a ${daysSinceLastSnapshot} j`}
                 </span>
-                <Link href="/mesurer" className="btn text-xs">＋ Relever</Link>
+                <Link href="/mesurer" className="btn text-xs"><Plus size={13} aria-hidden /> Relever</Link>
               </li>
             ))}
           </ul>

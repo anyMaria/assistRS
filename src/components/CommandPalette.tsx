@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import type { SearchResult } from "@/app/api/recherche/route";
 
 const TYPE_LABELS: Record<SearchResult["type"], string> = {
@@ -23,36 +24,30 @@ function groupResults(results: SearchResult[]) {
   return groups;
 }
 
-/** Recherche globale ⌘K (et déclenchable via le bouton 🔍 mobile). */
-export function CommandPalette() {
+/** Recherche globale (⌘K, ouverte depuis la topbar) — dialog contrôlé par le parent. */
+export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
 
-  const close = useCallback(() => {
-    setOpen(false);
+  function close() {
     setQuery("");
     setResults([]);
     setActiveIndex(0);
-  }, []);
+    onClose();
+  }
 
-  // Raccourci global ⌘K / Ctrl+K.
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setOpen((o) => !o);
-      }
       if (e.key === "Escape") close();
     }
-    window.addEventListener("keydown", onKeyDown);
+    if (open) window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [close]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -104,97 +99,77 @@ export function CommandPalette() {
     }
   }
 
+  if (!open) return null;
+
   return (
-    <>
-      {/* Bouton 🔍 mobile — déclenche la même recherche que ⌘K */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Rechercher"
-        className="md:hidden fixed right-4 bottom-24 z-40 flex h-12 w-12 items-center justify-center border border-line bg-white text-lg cursor-pointer"
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-ink/40 px-4 pt-[10vh]"
+      onClick={close}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Recherche globale"
+        onClick={(e) => e.stopPropagation()}
+        className="card w-full max-w-xl"
       >
-        <span aria-hidden>🔍</span>
-      </button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-ink/40 px-4 pt-[10vh]"
-          onClick={close}
-        >
-          <div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Recherche globale"
-            onClick={(e) => e.stopPropagation()}
-            className="card w-full max-w-xl"
-          >
-            <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-              <span aria-hidden className="text-ink/40">⌘K</span>
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={onInputKeyDown}
-                placeholder="Chercher une marque, une idée, une publication…"
-                aria-label="Terme de recherche"
-                className="w-full bg-transparent py-1 text-base outline-none"
-              />
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Fermer la recherche"
-                className="text-ink/50 hover:text-ink cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="max-h-[50vh] overflow-y-auto p-2">
-              {loading && (
-                <p className="px-3 py-4 text-sm text-ink/50">Recherche…</p>
-              )}
-              {!loading && query.trim().length >= 2 && flat.length === 0 && (
-                <p className="px-3 py-4 text-sm text-ink/50">Aucun résultat pour « {query} ».</p>
-              )}
-              {!loading && query.trim().length < 2 && (
-                <p className="px-3 py-4 text-sm text-ink/50">
-                  Tape au moins 2 caractères pour chercher parmi les marques, idées,
-                  publications, moodboards et modèles.
-                </p>
-              )}
-              {groups.map((group) => (
-                <div key={group.type} className="mb-2">
-                  <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-ink/40">
-                    {group.label}
-                  </p>
-                  {group.items.map((item) => {
-                    const index = flat.indexOf(item);
-                    return (
-                      <button
-                        key={`${item.type}-${item.id}`}
-                        type="button"
-                        onClick={() => go(item)}
-                        onMouseEnter={() => setActiveIndex(index)}
-                        className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm cursor-pointer ${
-                          index === activeIndex ? "bg-ink text-paper" : "hover:bg-ink/5"
-                        }`}
-                      >
-                        <span className="font-semibold">{item.label}</span>
-                        {item.meta && (
-                          <span className={index === activeIndex ? "text-paper/60" : "text-ink/40"}>
-                            {item.meta}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+          <span aria-hidden className="text-ink/40">⌘K</span>
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={onInputKeyDown}
+            placeholder="Chercher une marque, une idée, une publication…"
+            aria-label="Terme de recherche"
+            className="w-full bg-transparent py-1 text-base outline-none"
+          />
+          <button type="button" onClick={close} aria-label="Fermer la recherche" className="btn-icon">
+            <X size={16} aria-hidden />
+          </button>
         </div>
-      )}
-    </>
+
+        <div className="max-h-[50vh] overflow-y-auto p-2">
+          {loading && <p className="px-3 py-4 text-sm text-ink/50">Recherche…</p>}
+          {!loading && query.trim().length >= 2 && flat.length === 0 && (
+            <p className="px-3 py-4 text-sm text-ink/50">Aucun résultat pour « {query} ».</p>
+          )}
+          {!loading && query.trim().length < 2 && (
+            <p className="px-3 py-4 text-sm text-ink/50">
+              Tape au moins 2 caractères pour chercher parmi les marques, idées,
+              publications, moodboards et modèles.
+            </p>
+          )}
+          {groups.map((group) => (
+            <div key={group.type} className="mb-2">
+              <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-ink/40">
+                {group.label}
+              </p>
+              {group.items.map((item) => {
+                const index = flat.indexOf(item);
+                return (
+                  <button
+                    key={`${item.type}-${item.id}`}
+                    type="button"
+                    onClick={() => go(item)}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm cursor-pointer ${
+                      index === activeIndex ? "bg-accent-soft text-accent" : "hover:bg-paper-2"
+                    }`}
+                  >
+                    <span className="font-semibold">{item.label}</span>
+                    {item.meta && (
+                      <span className={index === activeIndex ? "text-accent/70" : "text-ink/40"}>
+                        {item.meta}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
