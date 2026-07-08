@@ -17,10 +17,14 @@ function Card({
   card,
   columns,
   onMove,
+  extra,
 }: {
   card: DataCard;
   columns: KanbanColumn[];
   onMove: (id: number, column: string) => void;
+  /** Contenu additionnel déjà rendu côté serveur (une fonction ne peut pas traverser la
+      frontière Server → Client, contrairement à un élément React déjà construit — G15). */
+  extra?: React.ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: card.id,
@@ -78,6 +82,7 @@ function Card({
           ))}
         </div>
         <DetailFields fields={card.detail ?? []} />
+        {extra}
       </CardModal>
       {/* Déplacement au clavier, pour l'accessibilité (le drag souris ne suffit pas) */}
       <div className="mt-2 flex gap-1">
@@ -109,11 +114,13 @@ function Column({
   cards,
   onMove,
   columns,
+  extraByCardId,
 }: {
   column: KanbanColumn;
   cards: DataCard[];
   columns: KanbanColumn[];
   onMove: (id: number, column: string) => void;
+  extraByCardId?: Record<number, React.ReactNode>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.key });
   return (
@@ -128,7 +135,7 @@ function Column({
       <div className="mt-2 space-y-2">
         {cards.length === 0 && <p className="text-xs italic text-ink/40">Vide</p>}
         {cards.map((card) => (
-          <Card key={card.id} card={card} columns={columns} onMove={onMove} />
+          <Card key={card.id} card={card} columns={columns} onMove={onMove} extra={extraByCardId?.[card.id]} />
         ))}
       </div>
     </div>
@@ -140,10 +147,14 @@ export function KanbanView({
   columns,
   cards,
   onMove,
+  extraByCardId,
 }: {
   columns: KanbanColumn[];
   cards: DataCard[];
   onMove: (id: number, column: string) => Promise<void>;
+  /** Contenu additionnel (déjà rendu côté serveur) affiché dans la fenêtre de détail de
+      chaque carte, par id — ex. planification, légende, recall (G15). */
+  extraByCardId?: Record<number, React.ReactNode>;
 }) {
   const [localCards, setLocalCards] = useState(cards);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -177,6 +188,7 @@ export function KanbanView({
             columns={columns}
             cards={localCards.filter((c) => c.column === col.key)}
             onMove={move}
+            extraByCardId={extraByCardId}
           />
         ))}
       </div>
